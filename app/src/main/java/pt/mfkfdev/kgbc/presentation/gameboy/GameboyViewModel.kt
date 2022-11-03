@@ -5,7 +5,7 @@ import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.AndroidViewModel
 import pt.mfkfdev.kgbc.R
-import pt.mfkfdev.kgbc.domain.emu.rom.RomManager
+import pt.mfkfdev.kgbc.domain.emu.RomManager
 import pt.mfkfdev.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {

@@ -12,8 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import pt.mfkfdev.kgbc.BuildConfig
 import pt.mfkfdev.kgbc.R
 import pt.mfkfdev.kgbc.databinding.FragmentGameboyBinding
-import pt.mfkfdev.kgbc.domain.emu.cpu.CPU
-import pt.mfkfdev.kgbc.domain.emu.rom.RomManager
+import pt.mfkfdev.kgbc.domain.emu.CPU
+import pt.mfkfdev.kgbc.domain.emu.RomManager
 import pt.mfkfdev.kgbc.presentation.base.BaseFragment
 import pt.mfkfdev.kgbc.presentation.container.ContainerViewModel
 import pt.mfkfdev.kgbc.utils.Globals.DEV_FLAVOR

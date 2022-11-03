@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.domain.emu.cpu
+package pt.mfkfdev.kgbc.domain.emu
 
 import android.content.Context
 import pt.mfkfdev.kgbc.utils.convertToHex
