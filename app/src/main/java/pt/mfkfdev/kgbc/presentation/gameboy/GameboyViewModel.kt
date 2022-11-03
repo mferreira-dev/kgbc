@@ -27,6 +27,8 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 				val fileDisplayName = dataCursor.getString(nameIndex)
 				val extension = fileDisplayName.substring(fileDisplayName.indexOf(".") + 1)
 
+				dataCursor.close()
+
 				if (extension != GB_EXT && extension != GBC_EXT) {
 					displayToast(
 						app.applicationContext,
@@ -44,8 +46,6 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 
 				// TODO: Load banks.
 			}
-
-			dataCursor?.close()
 		}
 	}
 
