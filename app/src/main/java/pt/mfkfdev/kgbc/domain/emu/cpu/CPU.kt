@@ -30,7 +30,7 @@ object CPU {
 	}
 
 	/**
-	 * Dump the GameBoy's memory to a local text file.
+	 * Dump the GameBoy's current memory to a local text file.
 	 */
 	fun dumpMemory(context: Context) {
 		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")

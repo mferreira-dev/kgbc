@@ -10,6 +10,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import pt.mfkfdev.kgbc.R
 import pt.mfkfdev.kgbc.databinding.ActivityContainerBinding
+import pt.mfkfdev.kgbc.domain.emu.rom.RomManager
 import pt.mfkfdev.kgbc.presentation.base.BaseActivity
 
 class ContainerActivity : BaseActivity() {

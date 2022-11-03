@@ -13,6 +13,7 @@ import pt.mfkfdev.kgbc.BuildConfig
 import pt.mfkfdev.kgbc.R
 import pt.mfkfdev.kgbc.databinding.FragmentGameboyBinding
 import pt.mfkfdev.kgbc.domain.emu.cpu.CPU
+import pt.mfkfdev.kgbc.domain.emu.rom.RomManager
 import pt.mfkfdev.kgbc.presentation.base.BaseFragment
 import pt.mfkfdev.kgbc.presentation.container.ContainerViewModel
 import pt.mfkfdev.kgbc.utils.Globals.DEV_FLAVOR
@@ -41,6 +42,7 @@ class GameboyFragment : BaseFragment() {
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		menuHost = requireActivity()
+		RomManager.deleteTempRom(requireContext())
 
 		setupUI()
 		setupButtons()
@@ -79,7 +81,7 @@ class GameboyFragment : BaseFragment() {
 		if (result.resultCode != RESULT_OK)
 			return@registerForActivityResult
 
-		fragmentViewModel.handleFilePickerLogic(result)
+		fragmentViewModel.handleFilePickerResult(result)
 	}
 
 	private fun openRom() {
