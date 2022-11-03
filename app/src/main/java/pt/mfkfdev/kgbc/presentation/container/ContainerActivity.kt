@@ -13,6 +13,7 @@ import pt.mfkfdev.kgbc.databinding.ActivityContainerBinding
 import pt.mfkfdev.kgbc.presentation.base.BaseActivity
 
 class ContainerActivity : BaseActivity() {
+
 	private lateinit var binding: ActivityContainerBinding
 	private lateinit var navController: NavController
 	private lateinit var appBarConfiguration: AppBarConfiguration
@@ -42,10 +43,12 @@ class ContainerActivity : BaseActivity() {
 
 	override fun setupObservers() {
 		viewModel.isLoading.observe(this) {
-			if (it.hasNotBeenHandled()) {
-				binding.loadingProgressContainer.visibility =
-					if (it.peekContent()) View.VISIBLE else View.GONE
-			}
+			if (it.hasBeenHandled)
+				return@observe
+
+			binding.loadingProgressContainer.visibility =
+				if (it.peekContent()) View.VISIBLE else View.GONE
 		}
 	}
+
 }

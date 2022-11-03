@@ -1,18 +1,31 @@
 package pt.mfkfdev.kgbc.presentation.gameboy
 
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import pt.mfkfdev.kgbc.BuildConfig
 import pt.mfkfdev.kgbc.R
 import pt.mfkfdev.kgbc.databinding.FragmentGameboyBinding
+import pt.mfkfdev.kgbc.domain.emu.cpu.CPU
 import pt.mfkfdev.kgbc.presentation.base.BaseFragment
 import pt.mfkfdev.kgbc.presentation.container.ContainerViewModel
+import pt.mfkfdev.kgbc.utils.Globals.DEV_FLAVOR
 
 class GameboyFragment : BaseFragment() {
+
 	private var _binding: FragmentGameboyBinding? = null
 	private val binding get() = _binding!!
-	lateinit var fragmentViewModel: GameboyViewModel
-	lateinit var activityViewModel: ContainerViewModel
+
+	private lateinit var fragmentViewModel: GameboyViewModel
+	private lateinit var activityViewModel: ContainerViewModel
+
+	private lateinit var menuHost: MenuHost
 
 	override fun onCreateView(
 		inflater: LayoutInflater,
@@ -25,12 +38,53 @@ class GameboyFragment : BaseFragment() {
 		return binding.root
 	}
 
-	override fun setupUI() {
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		menuHost = requireActivity()
 
+		setupUI()
+		setupButtons()
 	}
 
 	override fun setupButtons() {
 
+	}
+
+	override fun setupUI() {
+		menuHost.addMenuProvider(object : MenuProvider {
+			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+				if (BuildConfig.FLAVOR == DEV_FLAVOR)
+					menuInflater.inflate(R.menu.debug_menu, menu)
+				else
+					menuInflater.inflate(R.menu.release_menu, menu)
+			}
+
+			override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+				return when (menuItem.itemId) {
+					R.id.menu_open -> {
+						openRom()
+						true
+					}
+					R.id.menu_dump_memory -> {
+						CPU.dumpMemory(requireContext())
+						true
+					}
+					else -> false
+				}
+			}
+		}, viewLifecycleOwner, Lifecycle.State.RESUMED)
+	}
+
+	private val filePicker = registerForActivityResult(StartActivityForResult()) { result ->
+		if (result.resultCode != RESULT_OK)
+			return@registerForActivityResult
+
+		fragmentViewModel.handleFilePickerLogic(result)
+	}
+
+	private fun openRom() {
+		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
+		filePicker.launch(intent)
 	}
 
 	override fun onDestroyView() {
@@ -38,8 +92,4 @@ class GameboyFragment : BaseFragment() {
 		_binding = null
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-		super.onCreateOptionsMenu(menu, inflater)
-		inflater.inflate(R.menu.menu, menu)
-	}
 }
