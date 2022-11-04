@@ -68,7 +68,7 @@ class GameboyFragment : BaseFragment() {
 						true
 					}
 					R.id.menu_dump_memory -> {
-						CPU.dumpMemory(requireContext())
+						CPU.dump(requireContext())
 						true
 					}
 					else -> false
