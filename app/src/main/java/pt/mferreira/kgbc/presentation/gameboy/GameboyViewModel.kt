@@ -4,7 +4,10 @@ import android.app.Application
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.domain.emu.CPU
 import pt.mferreira.kgbc.domain.emu.RomManager
 import pt.mferreira.kgbc.utils.displayToast
 
@@ -45,6 +48,7 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 				byteCursor?.close()
 
 				// TODO: Load banks.
+				GlobalScope.launch { CPU.start() }
 			}
 		}
 	}

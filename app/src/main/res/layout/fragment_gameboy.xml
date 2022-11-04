@@ -152,7 +152,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_f"
@@ -160,7 +160,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_b"
@@ -168,7 +168,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_c"
@@ -176,7 +176,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_d"
@@ -184,7 +184,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_e"
@@ -192,7 +192,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_h"
@@ -200,7 +200,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_l"
@@ -208,7 +208,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x00" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_af"
@@ -216,7 +216,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_bc"
@@ -224,7 +224,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_de"
@@ -232,7 +232,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_hl"
@@ -240,7 +240,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_sp"
@@ -248,7 +248,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 				<TextView
 					android:id="@+id/gameboy_debug_value_pc"
@@ -256,7 +256,7 @@
 					android:layout_height="wrap_content"
 					android:textAlignment="textEnd"
 					android:textColor="@color/white"
-					tools:text="0x0000" />
+					tools:text="0000" />
 
 			</LinearLayout>
 

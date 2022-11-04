@@ -1,11 +1,15 @@
 package pt.mferreira.kgbc.domain.emu
 
 import android.content.Context
+import android.util.Log
+import pt.mferreira.kgbc.BuildConfig
+import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
 import pt.mferreira.kgbc.utils.convertToHex
 import pt.mferreira.kgbc.utils.getCurrentDate
 import java.io.File
 
 object CPU {
+
 	/**
 	 * The GameBoy address bus is 64 KB long.
 	 */
@@ -19,7 +23,7 @@ object CPU {
 	 * However, an operation takes at the very least 4 cycles to complete which means that
 	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz.
 	 */
-	private const val MACHINE_CYCLE_FREQUENCY = 1047500
+	private const val MAX_CYCLES_PER_SECOND = 1047500
 
 	/**
 	 * These constant values allow for short and concise syntax when accessing CPU registers.
@@ -43,6 +47,8 @@ object CPU {
 	private const val BC = 1
 	private const val DE = 2
 	private const val HL = 3
+
+	private const val DEBUG_CPU = "kgbc-cpu"
 
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
@@ -96,16 +102,13 @@ object CPU {
 
 	/**
 	 * Return the 16-bit registers values.
-	 *
-	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
-	 * is because that would require said property to be a variable rather than a value.
 	 */
 	fun get16BitRegisters(): Array<UShort> {
 		return r16b + sp + pc
 	}
 
 	/**
-	 * Dump the GameBoy's current memory to an internal text file.
+	 * Dump the GameBoy's current address bus to an internal text file.
 	 */
 	fun dump(context: Context) {
 		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")
@@ -118,4 +121,62 @@ object CPU {
 			}
 		}
 	}
+
+	private var cycles: Int = 0
+	private var future: Long = 0
+
+	/**
+	 * Run the fetch -> decode -> execute loop indefinitely.
+	 *
+	 * The CPU will continously run at [MAX_CYCLES_PER_SECOND].
+	 * This is achieved in the following way:
+	 *
+	 * 1. The system starts a new cycle batch every second, which means the CPU
+	 * will loop exactly [MAX_CYCLES_PER_SECOND] times.
+	 * A System.currentTimeMillis() call provides the batch's beginning point while simply adding 1000
+	 * to that same tell us when it should end.
+	 *
+	 * 2. At the beginning of each while loop cycle the system checks if it's time to start yet another batch.
+	 * If the time elapsed is under a second the program flow will continue as normal as long as
+	 * the [MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
+	 */
+	fun start() {
+		startNewBatch()
+
+		while (true) {
+			if (System.currentTimeMillis() >= future) {
+				if (BuildConfig.FLAVOR == DEV_FLAVOR)
+					completeBatch()
+
+				startNewBatch()
+			}
+
+			if (cycles == MAX_CYCLES_PER_SECOND)
+				continue
+
+			cycles++
+		}
+	}
+
+	private fun startNewBatch() {
+		val now = System.currentTimeMillis()
+		future = now + 1000L
+		cycles = 0
+
+		if (BuildConfig.FLAVOR != DEV_FLAVOR)
+			return
+
+		Log.d(DEBUG_CPU, "Starting new batch...")
+		Log.d(DEBUG_CPU, "Now: $now")
+		Log.d(DEBUG_CPU, "Fut: $future")
+		Log.d(DEBUG_CPU, "------------------------------")
+	}
+
+	private fun completeBatch() {
+		Log.d(DEBUG_CPU, "Batch complete.")
+		Log.d(DEBUG_CPU, "Now: ${System.currentTimeMillis()}")
+		Log.d(DEBUG_CPU, "Fut: $future")
+		Log.d(DEBUG_CPU, "------------------------------")
+	}
+
 }
