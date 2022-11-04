@@ -18,7 +18,7 @@ object CPU {
 	 * However, an operation takes at the very least 4 cycles to complete which means that
 	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz machine cycles.
 	 */
-	const val MACHINE_CYCLE_FREQUENCY = 1.05
+	const val MACHINE_CYCLE_FREQUENCY = 1047500
 
 	/**
 	 * These constant values allow for short and concise syntax when accessing CPU registers.
