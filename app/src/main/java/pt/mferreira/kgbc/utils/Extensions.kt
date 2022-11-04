@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.utils
+package pt.mferreira.kgbc.utils
 
 import android.content.Context
 import android.widget.Toast

@@ -1,12 +1,12 @@
-package pt.mfkfdev.kgbc.presentation.gameboy
+package pt.mferreira.kgbc.presentation.gameboy
 
 import android.app.Application
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.AndroidViewModel
-import pt.mfkfdev.kgbc.R
-import pt.mfkfdev.kgbc.domain.emu.RomManager
-import pt.mfkfdev.kgbc.utils.displayToast
+import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.domain.emu.RomManager
+import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 

@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.presentation.gameboy
+package pt.mferreira.kgbc.presentation.gameboy
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -9,14 +9,14 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import pt.mfkfdev.kgbc.BuildConfig
-import pt.mfkfdev.kgbc.R
-import pt.mfkfdev.kgbc.databinding.FragmentGameboyBinding
-import pt.mfkfdev.kgbc.domain.emu.CPU
-import pt.mfkfdev.kgbc.domain.emu.RomManager
-import pt.mfkfdev.kgbc.presentation.base.BaseFragment
-import pt.mfkfdev.kgbc.presentation.container.ContainerViewModel
-import pt.mfkfdev.kgbc.utils.Globals.DEV_FLAVOR
+import pt.mferreira.kgbc.BuildConfig
+import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.databinding.FragmentGameboyBinding
+import pt.mferreira.kgbc.domain.emu.CPU
+import pt.mferreira.kgbc.domain.emu.RomManager
+import pt.mferreira.kgbc.presentation.base.BaseFragment
+import pt.mferreira.kgbc.presentation.container.ContainerViewModel
+import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
 
 class GameboyFragment : BaseFragment() {
 

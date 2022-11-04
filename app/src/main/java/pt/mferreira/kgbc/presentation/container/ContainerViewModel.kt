@@ -1,9 +1,9 @@
-package pt.mfkfdev.kgbc.presentation.container
+package pt.mferreira.kgbc.presentation.container
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import pt.mfkfdev.kgbc.utils.Event
+import pt.mferreira.kgbc.utils.Event
 
 class ContainerViewModel : ViewModel() {
 	private val _isLoading = MutableLiveData<Event<Boolean>>()

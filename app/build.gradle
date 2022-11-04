@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-	namespace 'pt.mfkfdev.kgbc'
+	namespace 'pt.mferreira.kgbc'
 	compileSdk 33
 
 	defaultConfig {
-		applicationId "pt.mfkfdev.kgbc"
+		applicationId "pt.mferreira.kgbc"
 		minSdk 21
 		targetSdk 33
 		versionCode 1

@@ -9,7 +9,7 @@
 
 	<fragment
 		android:id="@+id/gameboyFragment"
-		android:name="pt.mfkfdev.kgbc.presentation.gameboy.GameboyFragment"
+		android:name="pt.mferreira.kgbc.presentation.gameboy.GameboyFragment"
 		android:label="GameboyFragment"
 		tools:layout="@layout/fragment_gameboy" />
 

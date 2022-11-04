@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.presentation.container
+package pt.mferreira.kgbc.presentation.container
 
 import android.os.Bundle
 import android.view.View
@@ -8,9 +8,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import pt.mfkfdev.kgbc.R
-import pt.mfkfdev.kgbc.databinding.ActivityContainerBinding
-import pt.mfkfdev.kgbc.presentation.base.BaseActivity
+import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.databinding.ActivityContainerBinding
+import pt.mferreira.kgbc.presentation.base.BaseActivity
 
 class ContainerActivity : BaseActivity() {
 

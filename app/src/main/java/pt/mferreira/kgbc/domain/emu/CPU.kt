@@ -1,8 +1,8 @@
-package pt.mfkfdev.kgbc.domain.emu
+package pt.mferreira.kgbc.domain.emu
 
 import android.content.Context
-import pt.mfkfdev.kgbc.utils.convertToHex
-import pt.mfkfdev.kgbc.utils.getCurrentDate
+import pt.mferreira.kgbc.utils.convertToHex
+import pt.mferreira.kgbc.utils.getCurrentDate
 import java.io.File
 
 object CPU {

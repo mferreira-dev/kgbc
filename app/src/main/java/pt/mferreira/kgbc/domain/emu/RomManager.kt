@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.domain.emu
+package pt.mferreira.kgbc.domain.emu
 
 import android.content.Context
 import java.io.File

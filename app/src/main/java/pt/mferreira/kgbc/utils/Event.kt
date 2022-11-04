@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.utils
+package pt.mferreira.kgbc.utils
 
 class Event<out T>(private val content: T) {
 	var hasBeenHandled = false

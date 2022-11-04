@@ -1,4 +1,4 @@
-package pt.mfkfdev.kgbc.presentation.base
+package pt.mferreira.kgbc.presentation.base
 
 import androidx.fragment.app.Fragment
 
