@@ -7,7 +7,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun UByte.convertToHex(): String {
-	return "%02X".format(this.toInt())
+	return "%04X".format(this.toInt())
+}
+
+fun UShort.convertToHex(): String {
+	return "%04X".format(this.toInt())
 }
 
 fun getCurrentDate(): String {

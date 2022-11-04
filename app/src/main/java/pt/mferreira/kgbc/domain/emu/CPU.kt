@@ -7,18 +7,19 @@ import java.io.File
 
 object CPU {
 	/**
-	 * The GameBoy has a grand total of 64KB of memory.
+	 * The GameBoy address bus is 64 KB long.
 	 */
-	const val GAMEBOY_MEMORY_SIZE_BYTES = 65536
-	const val NUMBER_OF_8_BIT_REGISTERS = 8
-	const val NUMBER_OF_16_BIT_REGISTERS = 4
+	private const val GAMEBOY_MEMORY_SIZE_BYTES = 65536
+	private const val NUMBER_OF_8_BIT_REGISTERS = 8
+	private const val NUMBER_OF_16_BIT_REGISTERS = 4
 
 	/**
-	 * Theoretically the GameBoy's CPU runs at 4.19 MHz clock cycles.
+	 * Theoretically the GameBoy's CPU runs at 4.19 MHz.
+	 *
 	 * However, an operation takes at the very least 4 cycles to complete which means that
-	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz machine cycles.
+	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz.
 	 */
-	const val MACHINE_CYCLE_FREQUENCY = 1047500
+	private const val MACHINE_CYCLE_FREQUENCY = 1047500
 
 	/**
 	 * These constant values allow for short and concise syntax when accessing CPU registers.
@@ -26,30 +27,28 @@ object CPU {
 	 * Another possible solution would be to use a map. However, using a map results in both much
 	 * longer syntax and being forced into null safety checks.
 	 *
-	 * i.e. registers8bit.get(map.get('A')) would return an Int? type.
-	 * While registers8bit.get(A) would return an Int type.
+	 * i.e. r8b.get(map.get('A')) would return an Int? type.
+	 * While r8b.get(A) would return an Int type.
 	 */
-	const val A = 0
-	const val F = 1
-	const val B = 2
-	const val C = 3
-	const val D = 4
-	const val E = 5
-	const val H = 6
-	const val L = 7
+	private const val A = 0
+	private const val F = 1
+	private const val B = 2
+	private const val C = 3
+	private const val D = 4
+	private const val E = 5
+	private const val H = 6
+	private const val L = 7
 
-	const val AF = 0
-	const val BC = 1
-	const val DE = 2
-	const val HL = 3
+	private const val AF = 0
+	private const val BC = 1
+	private const val DE = 2
+	private const val HL = 3
 
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
 	 * on the stack rather than the heap (a list would be stored on the heap).
-	 *
-	 * Note: The GameBoy has an 8-bit CPU but a 16-bit address bus.
 	 */
-	private val mem = Array<UByte>(GAMEBOY_MEMORY_SIZE_BYTES) { 0u }
+	private val bus = Array<UByte>(GAMEBOY_MEMORY_SIZE_BYTES) { 0u }
 
 	/**
 	 * A, F, B, C, D, E, H, L.
@@ -77,13 +76,33 @@ object CPU {
 	 * @param bytes The array of bytes to be written.
 	 * @param offset Start writing at this offset.
 	 */
-	fun write(bytes: ByteArray, offset: Int = 0) {
+	private fun write(bytes: ByteArray, offset: Int = 0) {
 		bytes.forEachIndexed { index, byte ->
-			mem[index + offset] = byte.toUByte()
+			bus[index + offset] = byte.toUByte()
 		}
 	}
 
-	fun registerHandler() {}
+	private fun registerHandler() {}
+
+	/**
+	 * Return the 8-bit registers values.
+	 *
+	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
+	 * is because that would require said property to be a variable rather than a value.
+	 */
+	fun get8BitRegisters(): Array<UByte> {
+		return r8b
+	}
+
+	/**
+	 * Return the 16-bit registers values.
+	 *
+	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
+	 * is because that would require said property to be a variable rather than a value.
+	 */
+	fun get16BitRegisters(): Array<UShort> {
+		return r16b + sp + pc
+	}
 
 	/**
 	 * Dump the GameBoy's current memory to an internal text file.
@@ -92,7 +111,7 @@ object CPU {
 		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")
 
 		dump.printWriter().use { printer ->
-			mem.forEachIndexed { index, uByte ->
+			bus.forEachIndexed { index, uByte ->
 				var buffer = uByte.convertToHex()
 				buffer += if ((index + 1) % 10 == 0) "\n" else " "
 				printer.print(buffer)

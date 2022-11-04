@@ -3,6 +3,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
@@ -18,13 +19,248 @@
 
 		<View
 			android:id="@+id/gameboy_display"
-			android:layout_width="320dp"
-			android:layout_height="288dp"
+			android:layout_width="160dp"
+			android:layout_height="144dp"
 			android:background="@color/black"
 			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintEnd_toEndOf="parent"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent" />
+
+		<androidx.constraintlayout.widget.ConstraintLayout
+			android:id="@+id/gameboy_debug"
+			android:layout_width="0dp"
+			android:layout_height="0dp"
+			android:layout_margin="8dp"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toStartOf="@id/gameboy_display"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toTopOf="parent"
+			tools:visibility="visible">
+
+			<LinearLayout
+				android:id="@+id/gameboy_debug_labels"
+				android:layout_width="wrap_content"
+				android:layout_height="0dp"
+				android:gravity="end"
+				android:orientation="vertical"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toTopOf="parent">
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="A:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="F:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="B:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="C:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="D:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="E:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="H:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="L:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="AF:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="BC:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="DE:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="HL:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="SP:"
+					android:textColor="@color/white" />
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="PC:"
+					android:textColor="@color/white" />
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/gameboy_debug_values"
+				android:layout_width="0dp"
+				android:layout_height="0dp"
+				android:layout_marginStart="8dp"
+				android:orientation="vertical"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintStart_toEndOf="@id/gameboy_debug_labels"
+				app:layout_constraintTop_toTopOf="parent">
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_a"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_f"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_b"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_c"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_d"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_e"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_h"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_l"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x00" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_af"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_bc"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_de"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_hl"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_sp"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+				<TextView
+					android:id="@+id/gameboy_debug_value_pc"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textAlignment="textEnd"
+					android:textColor="@color/white"
+					tools:text="0x0000" />
+
+			</LinearLayout>
+
+		</androidx.constraintlayout.widget.ConstraintLayout>
 
 	</androidx.constraintlayout.widget.ConstraintLayout>
 
