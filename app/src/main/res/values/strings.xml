@@ -9,5 +9,7 @@
 	<string name="gameboy_color">GameBoy Color</string>
 
 	<string name="dumped_bus">Dumped memory to %s</string>
-	<string name="open_rom_error">ERROR: Not a valid ROM type.</string>
+	<string name="general_error">ERROR: Something went wrong, please try again.</string>
+	<string name="open_rom_error">ERROR: Invalid ROM type.</string>
+	<string name="iset_load_error">ERROR: Could not load CPU instruction set.</string>
 </resources>

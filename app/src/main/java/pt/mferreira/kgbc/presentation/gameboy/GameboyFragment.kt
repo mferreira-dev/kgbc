@@ -1,7 +1,6 @@
 package pt.mferreira.kgbc.presentation.gameboy
 
 import android.app.Activity.RESULT_OK
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.TextView
@@ -14,7 +13,6 @@ import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.databinding.FragmentGameboyBinding
 import pt.mferreira.kgbc.domain.emu.CPU
-import pt.mferreira.kgbc.domain.emu.RomManager
 import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
@@ -47,10 +45,10 @@ class GameboyFragment : BaseFragment() {
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		menuHost = requireActivity()
-		RomManager.deleteTempRom(requireContext())
 
 		setupUI()
 		setupButtons()
+		setupObservers()
 	}
 
 	override fun setupButtons() {
@@ -87,10 +85,8 @@ class GameboyFragment : BaseFragment() {
 			binding.gameboyDebugValuePc
 		)
 
-		if (BuildConfig.FLAVOR == DEV_FLAVOR) {
+		if (BuildConfig.FLAVOR == DEV_FLAVOR)
 			binding.gameboyDebug.visibility = View.VISIBLE
-			updateDebugData()
-		}
 
 		menuHost.addMenuProvider(object : MenuProvider {
 			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -103,7 +99,7 @@ class GameboyFragment : BaseFragment() {
 			override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
 				return when (menuItem.itemId) {
 					R.id.menu_open -> {
-						openRom()
+						fragmentViewModel.openRom(filePicker)
 						true
 					}
 					R.id.menu_dump_memory -> {
@@ -116,25 +112,25 @@ class GameboyFragment : BaseFragment() {
 		}, viewLifecycleOwner, Lifecycle.State.RESUMED)
 	}
 
+	override fun setupObservers() {
+		fragmentViewModel.r8b.observe(viewLifecycleOwner) {
+			it.forEachIndexed { index, uByte ->
+				r8b[index].text = uByte.convertToHex()
+			}
+		}
+
+		fragmentViewModel.r16b.observe(viewLifecycleOwner) {
+			it.forEachIndexed { index, uShort ->
+				r16b[index].text = uShort.convertToHex()
+			}
+		}
+	}
+
 	private val filePicker = registerForActivityResult(StartActivityForResult()) { result ->
 		if (result.resultCode != RESULT_OK)
 			return@registerForActivityResult
 
 		fragmentViewModel.handleFilePickerResult(result)
-	}
-
-	private fun openRom() {
-		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
-		filePicker.launch(intent)
-	}
-
-	private fun updateDebugData() {
-		CPU.get8BitRegisters().forEachIndexed { index, uByte ->
-			r8b[index].text = uByte.convertToHex()
-		}
-		CPU.get16BitRegisters().forEachIndexed { index, uShort ->
-			r16b[index].text = uShort.convertToHex()
-		}
 	}
 
 	override fun onDestroyView() {

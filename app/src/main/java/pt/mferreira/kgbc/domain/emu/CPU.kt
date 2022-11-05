@@ -2,8 +2,10 @@ package pt.mferreira.kgbc.domain.emu
 
 import android.content.Context
 import android.util.Log
+import com.squareup.moshi.Moshi
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.domain.entities.InstructionSet
 import pt.mferreira.kgbc.domain.entities.RefUByte
 import pt.mferreira.kgbc.domain.entities.RefUShort
 import pt.mferreira.kgbc.utils.*
@@ -20,12 +22,12 @@ object CPU {
 	private const val NUMBER_OF_16_BIT_REGISTERS = 4
 
 	/**
-	 * Theoretically the GameBoy's CPU runs at 4.19 MHz.
+	 * Theoretically the GameBoy's CPU runs at 4.19 MHz (T-Cycles).
 	 *
 	 * However, an operation takes at the very least 4 cycles to complete which means that
-	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz.
+	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz (M-Cycles).
 	 */
-	private const val MAX_CYCLES_PER_SECOND = 1047500
+	private const val MAX_CYCLES_PER_SECOND = 1048576
 
 	/**
 	 * These constant values allow for short and concise syntax when accessing CPU registers.
@@ -57,8 +59,6 @@ object CPU {
 	 */
 	private const val BYPASS_BOOTSTRAP_ADDRESS = 0x0100
 	private const val STACK_POINTER_STARTING_ADDRESS = 0xFFFEu
-
-	private const val DEBUG_CPU = "kgbc-cpu"
 
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
@@ -92,6 +92,13 @@ object CPU {
 	 * Program counter.
 	 */
 	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS.toUShort())
+
+	/**
+	 * Will contain the Z80's complete instruction set (loaded from iset.json).
+	 */
+	private lateinit var iset: InstructionSet
+
+	private const val DEBUG_CPU = "kgbc-cpu"
 
 	/**
 	 * Return the 8-bit registers values.
@@ -137,7 +144,7 @@ object CPU {
 	}
 
 	private var cycles: Int = 0
-	private var endTime: Long = 0
+	private var endTimestamp: Long = 0
 
 	/**
 	 * Run the fetch -> decode -> execute loop indefinitely.
@@ -147,36 +154,45 @@ object CPU {
 	 *
 	 * 1. The system starts a new cycle batch every second, which means the CPU
 	 * will loop exactly [MAX_CYCLES_PER_SECOND] times.
-	 * A System.currentTimeMillis() call provides the batch's beginning point while simply adding 1000
+	 * A now() call provides the batch's beginning point while simply adding 1000
 	 * to that same tell us when it should end.
 	 *
 	 * 2. At the beginning of each while loop cycle the system checks if it's time to start yet another batch.
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
 	 * the [MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
-	fun run() {
-		startNewBatch()
+	fun run(context: Context) {
+		if (!prepareInstructionSet(context)) {
+			if (BuildConfig.FLAVOR == DEV_FLAVOR)
+				displayToast(context, context.getString(R.string.iset_load_error))
+			else
+				displayToast(context, context.getString(R.string.general_error))
+
+			return
+		}
+
+		startNewCycleBatch()
 
 		while (true) {
-			if (System.currentTimeMillis() >= endTime) {
+			if (now() >= endTimestamp) {
 				if (BuildConfig.FLAVOR == DEV_FLAVOR)
 					logBatchComplete()
 
-				startNewBatch()
+				startNewCycleBatch()
 			}
 
 			if (cycles == MAX_CYCLES_PER_SECOND)
 				continue
 
-			// Opcodes.
+			// Decode opcode.
 
 			cycles++
 		}
 	}
 
-	private fun startNewBatch() {
-		val now = System.currentTimeMillis()
-		endTime = now + 1000L
+	private fun startNewCycleBatch() {
+		val now = now()
+		endTimestamp = now + 1000L
 		cycles = 0
 
 		if (BuildConfig.FLAVOR != DEV_FLAVOR)
@@ -184,19 +200,27 @@ object CPU {
 
 		Log.d(DEBUG_CPU, "Starting new batch...")
 		Log.d(DEBUG_CPU, "Now: $now")
-		Log.d(DEBUG_CPU, "End: $endTime")
+		Log.d(DEBUG_CPU, "End: $endTimestamp")
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
 	private fun logBatchComplete() {
 		Log.d(DEBUG_CPU, "Batch complete.")
-		Log.d(DEBUG_CPU, "Now: ${System.currentTimeMillis()}")
-		Log.d(DEBUG_CPU, "End: $endTime")
+		Log.d(DEBUG_CPU, "Now: ${now()}")
+		Log.d(DEBUG_CPU, "End: $endTimestamp")
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
 	fun insertCartridge(bytes: ByteArray) {
 		write(bytes, BYPASS_BOOTSTRAP_ADDRESS)
+	}
+
+	private fun prepareInstructionSet(context: Context): Boolean {
+		val moshi = Moshi.Builder().build()
+		val adapter = moshi.adapter(InstructionSet::class.java)
+		val json = context.resources.openRawResource(R.raw.iset).bufferedReader().use { it.readText() }
+		iset = adapter.fromJson(json) ?: return false
+		return true
 	}
 
 	/**
@@ -210,32 +234,6 @@ object CPU {
 	 */
 	fun load(dest: RefUByte, source: RefUByte) {
 		dest.value = source.value
-	}
-
-	/**
-	 * Example:
-	 *
-	 * LD reg, (HL)
-	 * Load reg with the value at the address stored in HL.
-	 *
-	 * @param dest Where to write.
-	 * @param source What to write.
-	 */
-	fun load(dest: RefUByte, source: RefUShort) {
-		dest.value = bus[source.value.toInt()].value
-	}
-
-	/**
-	 * Example:
-	 *
-	 * LD (HL), reg
-	 * Stores reg at the address source in HL.
-	 *
-	 * @param dest Where to write.
-	 * @param source What to write.
-	 */
-	private fun load(dest: RefUShort, source: RefUByte) {
-		bus[dest.value.toInt()] = source
 	}
 
 	/**
@@ -283,6 +281,26 @@ object CPU {
 			bus[index + offset] = RefUByte(byte.toUByte())
 		}
 	}
+
+	/**
+	 * Adds source to destination.
+	 *
+	 * @param dest Will store the result.
+	 * @param source Second operand.
+	 */
+//	fun add(dest: RefUByte, source: RefUByte) {
+//		dest.value = (dest.value + source.value).toUByte()
+//	}
+
+	/**
+	 * Adds source to destination.
+	 *
+	 * @param dest Will store the result.
+	 * @param source Points to the memory address that contains the second operand.
+	 */
+//	fun add(dest: RefUByte, source: RefUShort) {
+//		dest.value = (dest.value + bus[source.value.toInt()].value).toUByte()
+//	}
 
 	private fun popStack() {
 		sp.value = (sp.value + 2u).toUShort()

@@ -1,9 +1,15 @@
 package pt.mferreira.kgbc.presentation.gameboy
 
 import android.app.Application
+import android.content.Intent
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.CPU
 import pt.mferreira.kgbc.domain.emu.RomManager
@@ -14,6 +20,19 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 	companion object {
 		const val GB_EXT = "gb"
 		const val GBC_EXT = "gbc"
+	}
+
+	private val _r8b = MutableLiveData<Array<UByte>>()
+	val r8b: LiveData<Array<UByte>>
+		get() = _r8b
+
+	private val _r16b = MutableLiveData<Array<UShort>>()
+	val r16b: LiveData<Array<UShort>>
+		get() = _r16b
+
+	init {
+		RomManager.deleteTempRom(app.applicationContext)
+		updateDebugData()
 	}
 
 	fun handleFilePickerResult(result: ActivityResult) {
@@ -38,6 +57,9 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 					return@outer
 				}
 
+				// User selected an actual ROM file, it is now safe to delete the temp ROM.
+				RomManager.deleteTempRom(app.applicationContext)
+
 				val byteCursor = app.applicationContext.contentResolver?.openInputStream(uri)
 				val bytes = byteCursor?.readBytes() ?: ByteArray(0)
 
@@ -46,9 +68,19 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 
 				byteCursor?.close()
 
-//				GlobalScope.launch { CPU.run() }
+				GlobalScope.launch { CPU.run(app.applicationContext) }
 			}
 		}
+	}
+
+	fun openRom(filePicker: ActivityResultLauncher<Intent>) {
+		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
+		filePicker.launch(intent)
+	}
+
+	fun updateDebugData() {
+		_r8b.value = CPU.get8BitRegisters()
+		_r16b.value = CPU.get16BitRegisters()
 	}
 
 }

@@ -38,3 +38,7 @@ fun getCurrentDate(): String {
 fun displayToast(ctx: Context, message: String) {
 	Toast.makeText(ctx, message, LENGTH_SHORT).show()
 }
+
+fun now(): Long {
+	return System.currentTimeMillis()
+}
