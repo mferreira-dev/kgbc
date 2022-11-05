@@ -6,28 +6,44 @@ import android.widget.Toast.LENGTH_SHORT
 import java.text.SimpleDateFormat
 import java.util.*
 
-inline infix fun UByte.shl(shift: Int): UByte {
+infix fun UByte.shl(shift: Int): UByte {
 	return (this.toInt() shl shift).toUByte()
 }
 
-inline infix fun UByte.shr(shift: Int): UByte {
+infix fun UByte.shr(shift: Int): UByte {
 	return (this.toInt() shr shift).toUByte()
 }
 
-inline infix fun UShort.shl(shift: Int): UShort {
+infix fun UShort.shl(shift: Int): UShort {
 	return (this.toInt() shl shift).toUShort()
 }
 
-inline infix fun UShort.shr(shift: Int): UShort {
+infix fun UShort.shr(shift: Int): UShort {
 	return (this.toInt() shr shift).toUShort()
 }
 
-fun UByte.convertToHex(): String {
+fun UByte.convertToHex2(): String {
+	return "%02X".format(this.toInt())
+}
+
+fun UShort.convertToHex2(): String {
+	return "%02X".format(this.toInt())
+}
+
+fun UByte.convertToHex4(): String {
 	return "%04X".format(this.toInt())
 }
 
-fun UShort.convertToHex(): String {
+fun UShort.convertToHex4(): String {
 	return "%04X".format(this.toInt())
+}
+
+fun UByte.convertToBin(): String {
+	return String.format("%8s", Integer.toBinaryString(this.toInt())).replace(" ", "0")
+}
+
+fun UShort.convertToBin(): String {
+	return String.format("%16s", Integer.toBinaryString(this.toInt())).replace(" ", "0")
 }
 
 fun getCurrentDate(): String {
@@ -35,10 +51,10 @@ fun getCurrentDate(): String {
 	return sdf.format(Date(System.currentTimeMillis()))
 }
 
-fun displayToast(ctx: Context, message: String) {
-	Toast.makeText(ctx, message, LENGTH_SHORT).show()
-}
-
 fun now(): Long {
 	return System.currentTimeMillis()
+}
+
+fun displayToast(ctx: Context, message: String) {
+	Toast.makeText(ctx, message, LENGTH_SHORT).show()
 }

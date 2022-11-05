@@ -1,4 +1,4 @@
-package pt.mferreira.kgbc.domain.entities
+package pt.mferreira.kgbc.domain.emu.entities
 
 /**
  * See [pt.mferreira.kgbc.domain.entities.RefUByte].

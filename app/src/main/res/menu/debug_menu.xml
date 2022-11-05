@@ -24,4 +24,9 @@
 		android:title="@string/menu_dump_memory"
 		app:showAsAction="collapseActionView" />
 
+	<item
+		android:id="@+id/menu_boot"
+		android:title="@string/menu_boot"
+		app:showAsAction="collapseActionView" />
+
 </menu>

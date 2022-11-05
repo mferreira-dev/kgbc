@@ -11,7 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import pt.mferreira.kgbc.R
-import pt.mferreira.kgbc.domain.emu.CPU
+import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.domain.emu.RomManager
 import pt.mferreira.kgbc.utils.displayToast
 
@@ -22,13 +22,9 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 		const val GBC_EXT = "gbc"
 	}
 
-	private val _r8b = MutableLiveData<Array<UByte>>()
-	val r8b: LiveData<Array<UByte>>
-		get() = _r8b
-
-	private val _r16b = MutableLiveData<Array<UShort>>()
-	val r16b: LiveData<Array<UShort>>
-		get() = _r16b
+	private val _registerValues = MutableLiveData<Array<Int>>()
+	val registerValues: LiveData<Array<Int>>
+		get() = _registerValues
 
 	init {
 		RomManager.deleteTempRom(app.applicationContext)
@@ -68,7 +64,7 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 
 				byteCursor?.close()
 
-				GlobalScope.launch { CPU.run(app.applicationContext) }
+				GlobalScope.launch { CPU.run() }
 			}
 		}
 	}
@@ -78,9 +74,8 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 		filePicker.launch(intent)
 	}
 
-	fun updateDebugData() {
-		_r8b.value = CPU.get8BitRegisters()
-		_r16b.value = CPU.get16BitRegisters()
+	private fun updateDebugData() {
+		_registerValues.value = CPU.getRegisterValues()
 	}
 
 }

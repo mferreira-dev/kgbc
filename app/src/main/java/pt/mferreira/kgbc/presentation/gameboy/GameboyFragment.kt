@@ -12,11 +12,11 @@ import androidx.lifecycle.ViewModelProvider
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.databinding.FragmentGameboyBinding
-import pt.mferreira.kgbc.domain.emu.CPU
+import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
-import pt.mferreira.kgbc.utils.convertToHex
+import pt.mferreira.kgbc.utils.convertToHex4
 
 class GameboyFragment : BaseFragment() {
 
@@ -28,8 +28,7 @@ class GameboyFragment : BaseFragment() {
 
 	private lateinit var menuHost: MenuHost
 
-	private lateinit var r8b: List<TextView>
-	private lateinit var r16b: List<TextView>
+	private lateinit var registers: List<TextView>
 
 	override fun onCreateView(
 		inflater: LayoutInflater,
@@ -65,7 +64,7 @@ class GameboyFragment : BaseFragment() {
 	}
 
 	override fun setupUI() {
-		r8b = listOf(
+		registers = listOf(
 			binding.gameboyDebugValueA,
 			binding.gameboyDebugValueF,
 			binding.gameboyDebugValueB,
@@ -74,9 +73,6 @@ class GameboyFragment : BaseFragment() {
 			binding.gameboyDebugValueE,
 			binding.gameboyDebugValueH,
 			binding.gameboyDebugValueL,
-		)
-
-		r16b = listOf(
 			binding.gameboyDebugValueAf,
 			binding.gameboyDebugValueBc,
 			binding.gameboyDebugValueDe,
@@ -113,15 +109,9 @@ class GameboyFragment : BaseFragment() {
 	}
 
 	override fun setupObservers() {
-		fragmentViewModel.r8b.observe(viewLifecycleOwner) {
-			it.forEachIndexed { index, uByte ->
-				r8b[index].text = uByte.convertToHex()
-			}
-		}
-
-		fragmentViewModel.r16b.observe(viewLifecycleOwner) {
-			it.forEachIndexed { index, uShort ->
-				r16b[index].text = uShort.convertToHex()
+		fragmentViewModel.registerValues.observe(viewLifecycleOwner) {
+			it.forEachIndexed { index, int ->
+				registers[index].text = int.toUShort().convertToHex4()
 			}
 		}
 	}
