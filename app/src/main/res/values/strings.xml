@@ -8,5 +8,6 @@
 
 	<string name="gameboy_color">GameBoy Color</string>
 
+	<string name="dumped_bus">Dumped memory to %s</string>
 	<string name="open_rom_error">ERROR: Not a valid ROM type.</string>
 </resources>

@@ -3,9 +3,11 @@ package pt.mferreira.kgbc.domain.emu
 import android.content.Context
 import android.util.Log
 import pt.mferreira.kgbc.BuildConfig
+import pt.mferreira.kgbc.R
+import pt.mferreira.kgbc.domain.entities.RefUByte
+import pt.mferreira.kgbc.domain.entities.RefUShort
+import pt.mferreira.kgbc.utils.*
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
-import pt.mferreira.kgbc.utils.convertToHex
-import pt.mferreira.kgbc.utils.getCurrentDate
 import java.io.File
 
 object CPU {
@@ -48,47 +50,48 @@ object CPU {
 	private const val DE = 2
 	private const val HL = 3
 
+	/**
+	 * The GameBoy has a bootstrap process that involves reading from a boot ROM.
+	 * However, you cannot legally include a copy of a boot ROM with an emulator so we're left with
+	 * one of two choices: either ask the user for a copy of their own or to skip this process entirely.
+	 */
+	private const val BYPASS_BOOTSTRAP_ADDRESS = 0x0100
+	private const val STACK_POINTER_STARTING_ADDRESS = 0xFFFEu
+
 	private const val DEBUG_CPU = "kgbc-cpu"
 
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
 	 * on the stack rather than the heap (a list would be stored on the heap).
 	 */
-	private val bus = Array<UByte>(GAMEBOY_MEMORY_SIZE_BYTES) { 0u }
+	private val bus = Array(GAMEBOY_MEMORY_SIZE_BYTES) { RefUByte() }
 
 	/**
 	 * A, F, B, C, D, E, H, L.
 	 */
-	private val r8b = Array<UByte>(NUMBER_OF_8_BIT_REGISTERS) { 0u }
+	private val r8b = Array(NUMBER_OF_8_BIT_REGISTERS) { RefUByte() }
 
 	/**
 	 *	AF, BC, DE, HL.
 	 */
-	private val r16b = Array<UShort>(NUMBER_OF_16_BIT_REGISTERS) { 0u }
+	private val r16b = Array(NUMBER_OF_16_BIT_REGISTERS) { RefUShort() }
 
 	/**
 	 * Stack pointer.
+	 *
+	 * Remember, the stack in the GameBoy grows top-down, so the top of the stack is the
+	 * lowest address occupied by the stack, which is indexed by the Stack Pointer.
+	 *
+	 * Popping from the stack INCREMENTS the stack pointer by 2.
+	 *
+	 * Pushing into the stack DECREMENTS the stack pointer by 2.
 	 */
-	private var sp: UShort = 0u
+	private var sp: RefUShort = RefUShort(STACK_POINTER_STARTING_ADDRESS.toUShort())
 
 	/**
 	 * Program counter.
 	 */
-	private var pc: UShort = 0u
-
-	/**
-	 * Writes an array of bytes to memory starting at offset.
-	 *
-	 * @param bytes The array of bytes to be written.
-	 * @param offset Start writing at this offset.
-	 */
-	private fun write(bytes: ByteArray, offset: Int = 0) {
-		bytes.forEachIndexed { index, byte ->
-			bus[index + offset] = byte.toUByte()
-		}
-	}
-
-	private fun registerHandler() {}
+	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS.toUShort())
 
 	/**
 	 * Return the 8-bit registers values.
@@ -97,14 +100,23 @@ object CPU {
 	 * is because that would require said property to be a variable rather than a value.
 	 */
 	fun get8BitRegisters(): Array<UByte> {
-		return r8b
+		val list = mutableListOf<UByte>().apply {
+			r8b.forEach { add(it.value) }
+		}
+		return list.toTypedArray()
 	}
 
 	/**
 	 * Return the 16-bit registers values.
 	 */
 	fun get16BitRegisters(): Array<UShort> {
-		return r16b + sp + pc
+		val list = mutableListOf<UShort>().apply {
+			r16b.forEach { add(it.value) }
+			add(sp.value)
+			add(pc.value)
+		}
+
+		return list.toTypedArray()
 	}
 
 	/**
@@ -114,16 +126,18 @@ object CPU {
 		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")
 
 		dump.printWriter().use { printer ->
-			bus.forEachIndexed { index, uByte ->
-				var buffer = uByte.convertToHex()
+			bus.forEachIndexed { index, refUByte ->
+				var buffer = refUByte.value.convertToHex()
 				buffer += if ((index + 1) % 10 == 0) "\n" else " "
 				printer.print(buffer)
 			}
 		}
+
+		displayToast(context, context.getString(R.string.dumped_bus, dump.name))
 	}
 
 	private var cycles: Int = 0
-	private var future: Long = 0
+	private var endTime: Long = 0
 
 	/**
 	 * Run the fetch -> decode -> execute loop indefinitely.
@@ -140,13 +154,13 @@ object CPU {
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
 	 * the [MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
-	fun start() {
+	fun run() {
 		startNewBatch()
 
 		while (true) {
-			if (System.currentTimeMillis() >= future) {
+			if (System.currentTimeMillis() >= endTime) {
 				if (BuildConfig.FLAVOR == DEV_FLAVOR)
-					completeBatch()
+					logBatchComplete()
 
 				startNewBatch()
 			}
@@ -154,13 +168,15 @@ object CPU {
 			if (cycles == MAX_CYCLES_PER_SECOND)
 				continue
 
+			// Opcodes.
+
 			cycles++
 		}
 	}
 
 	private fun startNewBatch() {
 		val now = System.currentTimeMillis()
-		future = now + 1000L
+		endTime = now + 1000L
 		cycles = 0
 
 		if (BuildConfig.FLAVOR != DEV_FLAVOR)
@@ -168,15 +184,106 @@ object CPU {
 
 		Log.d(DEBUG_CPU, "Starting new batch...")
 		Log.d(DEBUG_CPU, "Now: $now")
-		Log.d(DEBUG_CPU, "Fut: $future")
+		Log.d(DEBUG_CPU, "End: $endTime")
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
-	private fun completeBatch() {
+	private fun logBatchComplete() {
 		Log.d(DEBUG_CPU, "Batch complete.")
 		Log.d(DEBUG_CPU, "Now: ${System.currentTimeMillis()}")
-		Log.d(DEBUG_CPU, "Fut: $future")
+		Log.d(DEBUG_CPU, "End: $endTime")
 		Log.d(DEBUG_CPU, "------------------------------")
+	}
+
+	fun insertCartridge(bytes: ByteArray) {
+		write(bytes, BYPASS_BOOTSTRAP_ADDRESS)
+	}
+
+	/**
+	 * Example:
+	 *
+	 * LD A, ($3FFF)
+	 * This instruction loads the accumulator from memory location $3FFF.
+	 *
+	 * @param dest Where to write.
+	 * @param source What to write.
+	 */
+	fun load(dest: RefUByte, source: RefUByte) {
+		dest.value = source.value
+	}
+
+	/**
+	 * Example:
+	 *
+	 * LD reg, (HL)
+	 * Load reg with the value at the address stored in HL.
+	 *
+	 * @param dest Where to write.
+	 * @param source What to write.
+	 */
+	fun load(dest: RefUByte, source: RefUShort) {
+		dest.value = bus[source.value.toInt()].value
+	}
+
+	/**
+	 * Clears the destination's current content then loads a new value.
+	 *
+	 * Example:
+	 *
+	 * LD SP, ($4050)
+	 * This instruction loads the Stack Pointer from locations $4050 (least significant byte)
+	 * and $4051 (most significant byte). Do keep in mind that the GameBoy is little-endian.
+	 *
+	 * The JVM has quite a few limitations, and a really good example of this is the fact that
+	 * you can only perform bitshift operations on 32-bit integers. So in order to put two bytes into a short
+	 * we first we need to transform each byte to a short. Then, they'll be converted to integesr, shifted,
+	 * and converted back to shorts.
+	 *
+	 * @param dest Where to write.
+	 * @param msb Most significant byte (left).
+	 * @param lsb Least significant byte (right).
+	 */
+	private fun load(dest: RefUShort, msb: RefUByte, lsb: RefUByte) {
+		dest.value = dest.value and 0u
+		dest.value = dest.value or RefUShort(msb.value.toUShort() shl 8).value
+		dest.value = dest.value or RefUShort(lsb.value.toUShort()).value
+	}
+
+	/**
+	 * Writes a byte to memory at offset.
+	 *
+	 * @param byte The byte to be written.
+	 * @param offset Start writing at this offset.
+	 */
+	private fun write(byte: UByte, offset: Int) {
+		bus[offset] = RefUByte(byte)
+	}
+
+	/**
+	 * Writes an array of bytes to memory starting at offset.
+	 *
+	 * @param bytes The array of bytes to be written.
+	 * @param offset Start writing at this offset.
+	 */
+	private fun write(bytes: ByteArray, offset: Int) {
+		bytes.forEachIndexed { index, byte ->
+			bus[index + offset] = RefUByte(byte.toUByte())
+		}
+	}
+
+	private fun popStack() {
+		sp.value = (sp.value + 2u).toUShort()
+	}
+
+	/**
+	 * Remember that the top of the stack is at a the LOWEST address.
+	 *
+	 * @param uShort The bytes to be written.
+	 */
+	private fun pushToStack(uShort: UShort) {
+		sp.value = (sp.value - 2u).toUShort()
+		write((uShort shr 8).toUByte(), sp.value.toInt())
+		write(uShort.toUByte(), sp.value.toInt() + 1)
 	}
 
 }

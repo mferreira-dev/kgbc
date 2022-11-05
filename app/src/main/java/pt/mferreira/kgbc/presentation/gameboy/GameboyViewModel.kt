@@ -4,8 +4,6 @@ import android.app.Application
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.CPU
 import pt.mferreira.kgbc.domain.emu.RomManager
@@ -41,14 +39,14 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 				}
 
 				val byteCursor = app.applicationContext.contentResolver?.openInputStream(uri)
-				RomManager.copyRomToInternalStorage(
-					app.applicationContext,
-					byteCursor?.readBytes() ?: ByteArray(0)
-				)
+				val bytes = byteCursor?.readBytes() ?: ByteArray(0)
+
+				RomManager.copyRomToInternalStorage(app.applicationContext, bytes)
+				CPU.insertCartridge(bytes)
+
 				byteCursor?.close()
 
-				// TODO: Load banks.
-				GlobalScope.launch { CPU.start() }
+//				GlobalScope.launch { CPU.run() }
 			}
 		}
 	}
