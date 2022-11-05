@@ -226,6 +226,19 @@ object CPU {
 	}
 
 	/**
+	 * Example:
+	 *
+	 * LD (HL), reg
+	 * Stores reg at the address source in HL.
+	 *
+	 * @param dest Where to write.
+	 * @param source What to write.
+	 */
+	private fun load(dest: RefUShort, source: RefUByte) {
+		bus[dest.value.toInt()] = source
+	}
+
+	/**
 	 * Clears the destination's current content then loads a new value.
 	 *
 	 * Example:
@@ -236,7 +249,7 @@ object CPU {
 	 *
 	 * The JVM has quite a few limitations, and a really good example of this is the fact that
 	 * you can only perform bitshift operations on 32-bit integers. So in order to put two bytes into a short
-	 * we first we need to transform each byte to a short. Then, they'll be converted to integesr, shifted,
+	 * we first we need to transform each byte to a short. Then, they'll be converted to integers, shifted,
 	 * and converted back to shorts.
 	 *
 	 * @param dest Where to write.
