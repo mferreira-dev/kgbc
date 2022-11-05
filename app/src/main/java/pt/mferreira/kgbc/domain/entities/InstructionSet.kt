@@ -5,21 +5,12 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class InstructionSet(
-	val unprefixed: Unprefixed,
-	val cbprefixed: Cbprefixed
+	val unprefixed: List<Instruction>,
+	val cbprefixed: List<Instruction>,
 ) {
 	@JsonClass(generateAdapter = true)
-	data class Unprefixed(
-		val instruction: List<Instruction>
-	)
-
-	@JsonClass(generateAdapter = true)
-	data class Cbprefixed(
-		val instruction: List<Instruction>
-	)
-
-	@JsonClass(generateAdapter = true)
 	data class Instruction(
+		val name: String,
 		val mnemonic: String,
 		val bytes: Int,
 		val cycles: List<Int>,

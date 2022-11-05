@@ -219,6 +219,7 @@ object CPU {
 		val moshi = Moshi.Builder().build()
 		val adapter = moshi.adapter(InstructionSet::class.java)
 		val json = context.resources.openRawResource(R.raw.iset).bufferedReader().use { it.readText() }
+
 		iset = adapter.fromJson(json) ?: return false
 		return true
 	}
