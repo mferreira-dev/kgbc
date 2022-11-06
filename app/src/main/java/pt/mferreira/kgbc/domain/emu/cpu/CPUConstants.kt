@@ -21,7 +21,9 @@ object CPUConstants {
 	 * However, you cannot legally include a copy of a boot ROM with an emulator so we're left with
 	 * one of two choices: either ask the user for a copy of their own or to skip this process entirely.
 	 */
-	const val BYPASS_BOOTSTRAP_ADDRESS = 0x0100
+	const val BYPASS_BOOTSTRAP_ADDRESS: UShort = 0x0100u
+
+	const val STACK_POINTER_STARTING_ADDRESS: UShort = 0xFFFEu
 
 	/**
 	 * These constant values allow for short and concise syntax when accessing CPU registers.

@@ -18,6 +18,7 @@ import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.L_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.MAX_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.NUMBER_OF_8_BIT_REGISTERS
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.PREFIXED_INSTRUCTION
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.STACK_POINTER_STARTING_ADDRESS
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.SUB_MASK
 import pt.mferreira.kgbc.domain.emu.entities.RefUByte
 import pt.mferreira.kgbc.domain.emu.entities.RefUShort
@@ -50,16 +51,22 @@ object CPU {
 	 *
 	 * Pushing into the stack DECREMENTS the stack pointer by 2.
 	 */
-//	private var sp: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS.toUShort())
-	private var sp: RefUShort = RefUShort()
+//	private var sp: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS)
+	private var sp: RefUShort = RefUShort(STACK_POINTER_STARTING_ADDRESS)
 
 	/**
 	 * Program counter.
 	 */
-//	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS.toUShort())
+//	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS)
 	private var pc: RefUShort = RefUShort()
 
-	private fun conjoinRegisters(msb: RefUByte, lsb: RefUByte): RefUShort {
+	/**
+	 * Conjoin two bytes (usually registers).
+	 *
+	 * @param msb The most significant byte. Will be shifted left 8 bits.
+	 * @param lsb The least significant byte. Will be positioned at the least significant 8 bits.
+	 */
+	fun conjoin(msb: RefUByte, lsb: RefUByte): RefUShort {
 		return RefUShort().apply {
 			value = value or RefUShort(msb.value.toUShort() shl 8).value
 			value = value or RefUShort(lsb.value.toUShort()).value
@@ -74,10 +81,10 @@ object CPU {
 		val list = mutableListOf<Int>().apply {
 			reg.forEach { add(it.value.toInt()) }
 
-			add(conjoinRegisters(reg[A_IDX], reg[F_IDX]).value.toInt())
-			add(conjoinRegisters(reg[B_IDX], reg[C_IDX]).value.toInt())
-			add(conjoinRegisters(reg[D_IDX], reg[E_IDX]).value.toInt())
-			add(conjoinRegisters(reg[H_IDX], reg[L_IDX]).value.toInt())
+			add(conjoin(reg[A_IDX], reg[F_IDX]).value.toInt())
+			add(conjoin(reg[B_IDX], reg[C_IDX]).value.toInt())
+			add(conjoin(reg[D_IDX], reg[E_IDX]).value.toInt())
+			add(conjoin(reg[H_IDX], reg[L_IDX]).value.toInt())
 
 			add(sp.value.toInt())
 			add(pc.value.toInt())
@@ -155,7 +162,7 @@ object CPU {
 			val ls3b = (opcode.toInt() and 0x7).toUByte()
 
 			if (ls3b.toInt() == 0x6) {
-				val address = conjoinRegisters(reg[H_IDX], reg[L_IDX]).value
+				val address = conjoin(reg[H_IDX], reg[L_IDX]).value
 				subtract(bus[address.toInt()].value)
 				machineCycles += 2
 				return
@@ -274,7 +281,7 @@ object CPU {
 	}
 
 	fun insertCartridge(bytes: ByteArray) {
-		write(bytes, BYPASS_BOOTSTRAP_ADDRESS)
+		write(bytes, BYPASS_BOOTSTRAP_ADDRESS.toInt())
 	}
 
 	// endregion
