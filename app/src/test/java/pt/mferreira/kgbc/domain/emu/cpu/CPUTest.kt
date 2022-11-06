@@ -53,6 +53,16 @@ class CPUTest {
 	}
 
 	@Test
+	fun addition() {
+
+	}
+
+	@Test
+	fun subtract() {
+		
+	}
+
+	@Test
 	fun setZeroFlagTrue() {
 		reg[F_IDX].value = (reg[F_IDX].value.toInt() or 0x80).toUByte()
 

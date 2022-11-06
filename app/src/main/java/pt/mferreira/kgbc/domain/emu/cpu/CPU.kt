@@ -155,8 +155,8 @@ object CPU {
 			val ls3b = (opcode.toInt() and 0x7).toUByte()
 
 			if (ls3b.toInt() == 0x6) {
-				val addr = conjoinRegisters(reg[H_IDX], reg[L_IDX]).value
-				subtract(bus[addr.toInt()].value)
+				val address = conjoinRegisters(reg[H_IDX], reg[L_IDX]).value
+				subtract(bus[address.toInt()].value)
 				machineCycles += 2
 				return
 			}
