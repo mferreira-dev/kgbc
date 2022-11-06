@@ -20,13 +20,13 @@
 		app:showAsAction="collapseActionView" />
 
 	<item
-		android:id="@+id/menu_dump_memory"
-		android:title="@string/menu_dump_memory"
+		android:id="@+id/menu_boot"
+		android:title="@string/menu_boot"
 		app:showAsAction="collapseActionView" />
 
 	<item
-		android:id="@+id/menu_boot"
-		android:title="@string/menu_boot"
+		android:id="@+id/menu_dump_memory"
+		android:title="@string/menu_dump_memory"
 		app:showAsAction="collapseActionView" />
 
 </menu>

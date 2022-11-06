@@ -104,7 +104,7 @@ class GameboyFragment : BaseFragment() {
 						true
 					}
 					R.id.menu_boot -> {
-						CPU.boot()
+						CPU.boot(requireContext())
 						true
 					}
 					else -> false

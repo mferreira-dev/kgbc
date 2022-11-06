@@ -60,11 +60,11 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 				val bytes = byteCursor?.readBytes() ?: ByteArray(0)
 
 				RomManager.copyRomToInternalStorage(app.applicationContext, bytes)
-				CPU.insertCartridge(bytes)
+				CPU.bootFromCartridge(bytes)
 
 				byteCursor?.close()
 
-				GlobalScope.launch { CPU.run() }
+				GlobalScope.launch { CPU.startCoreLoop() }
 			}
 		}
 	}
