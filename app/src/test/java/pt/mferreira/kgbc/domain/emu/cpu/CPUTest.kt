@@ -1,7 +1,8 @@
 package pt.mferreira.kgbc.domain.emu.cpu
 
-import org.junit.Assert.*
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.SUB_MASK
 import pt.mferreira.kgbc.domain.emu.entities.RefUByte
 import pt.mferreira.kgbc.utils.shr
 
@@ -12,6 +13,27 @@ class CPUTest {
 	}
 
 	private val reg = Array(CPUConstants.NUMBER_OF_8_BIT_REGISTERS) { RefUByte() }
+
+	@Test
+	fun maskOpcode() {
+		var isMatch = true
+
+		// Test.
+		val mask = SUB_MASK
+		val target = "10010001"
+
+		for (idx in mask.indices) {
+			if (mask[idx] == '_')
+				continue
+
+			if (target[idx] != mask[idx]) {
+				isMatch = false
+				break
+			}
+		}
+
+		assertTrue(isMatch)
+	}
 
 	@Test
 	fun setZeroFlagTrue() {
