@@ -10,6 +10,16 @@
 		app:showAsAction="collapseActionView" />
 
 	<item
+		android:id="@+id/menu_power_on"
+		android:title="@string/menu_power_on"
+		app:showAsAction="collapseActionView" />
+
+	<item
+		android:id="@+id/menu_power_off"
+		android:title="@string/menu_power_off"
+		app:showAsAction="collapseActionView" />
+
+	<item
 		android:id="@+id/menu_settings"
 		android:title="@string/menu_settings"
 		app:showAsAction="collapseActionView" />
@@ -17,6 +27,11 @@
 	<item
 		android:id="@+id/menu_about"
 		android:title="@string/menu_about"
+		app:showAsAction="collapseActionView" />
+
+	<item
+		android:id="@+id/menu_dump_memory"
+		android:title="@string/menu_dump_memory"
 		app:showAsAction="collapseActionView" />
 
 </menu>

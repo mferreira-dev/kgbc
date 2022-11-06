@@ -17,7 +17,6 @@ import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
 import pt.mferreira.kgbc.utils.convertToHex4
-import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyFragment : BaseFragment() {
 
@@ -48,7 +47,9 @@ class GameboyFragment : BaseFragment() {
 
 		setupUI()
 		setupButtons()
-		setupObservers()
+
+		if (BuildConfig.FLAVOR == DEV_FLAVOR)
+			setupObservers()
 	}
 
 	override fun setupButtons() {
@@ -88,9 +89,9 @@ class GameboyFragment : BaseFragment() {
 		menuHost.addMenuProvider(object : MenuProvider {
 			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
 				if (BuildConfig.FLAVOR == DEV_FLAVOR)
-					menuInflater.inflate(R.menu.debug_menu, menu)
+					menuInflater.inflate(R.menu.dev_menu, menu)
 				else
-					menuInflater.inflate(R.menu.release_menu, menu)
+					menuInflater.inflate(R.menu.prod_menu, menu)
 			}
 
 			override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -99,12 +100,16 @@ class GameboyFragment : BaseFragment() {
 						fragmentViewModel.openRom(filePicker)
 						true
 					}
-					R.id.menu_dump_memory -> {
-						CPU.dump(requireContext())
+					R.id.menu_power_on -> {
+						CPU.bootFromBootRom(requireContext())
 						true
 					}
-					R.id.menu_boot -> {
-						CPU.boot(requireContext())
+					R.id.menu_power_off -> {
+						CPU.powerOff()
+						true
+					}
+					R.id.menu_dump_memory -> {
+						CPU.dump(requireContext())
 						true
 					}
 					else -> false
@@ -114,7 +119,7 @@ class GameboyFragment : BaseFragment() {
 	}
 
 	override fun setupObservers() {
-		fragmentViewModel.registerValues.observe(viewLifecycleOwner) {
+		CPU.registerValues.observe(viewLifecycleOwner) {
 			it.forEachIndexed { index, int ->
 				registers[index].text = int.toUShort().convertToHex4()
 			}

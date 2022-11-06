@@ -6,13 +6,9 @@ import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import pt.mferreira.kgbc.R
-import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.domain.emu.RomManager
+import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -22,13 +18,8 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 		const val GBC_EXT = "gbc"
 	}
 
-	private val _registerValues = MutableLiveData<Array<Int>>()
-	val registerValues: LiveData<Array<Int>>
-		get() = _registerValues
-
 	init {
 		RomManager.deleteTempRom(app.applicationContext)
-		updateDebugData()
 	}
 
 	fun handleFilePickerResult(result: ActivityResult) {
@@ -63,8 +54,6 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 				CPU.bootFromCartridge(bytes)
 
 				byteCursor?.close()
-
-				GlobalScope.launch { CPU.startCoreLoop() }
 			}
 		}
 	}
@@ -72,10 +61,6 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 	fun openRom(filePicker: ActivityResultLauncher<Intent>) {
 		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
 		filePicker.launch(intent)
-	}
-
-	private fun updateDebugData() {
-		_registerValues.value = CPU.getRegisterValues()
 	}
 
 }

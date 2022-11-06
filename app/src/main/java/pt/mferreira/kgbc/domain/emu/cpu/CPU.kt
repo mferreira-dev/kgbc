@@ -2,6 +2,12 @@ package pt.mferreira.kgbc.domain.emu.cpu
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.A_IDX
@@ -64,6 +70,12 @@ object CPU {
 //	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS)
 	private var pc: RefUShort = RefUShort()
 
+	private val scope = CoroutineScope(Dispatchers.Default)
+
+	private val _registerValues = MutableLiveData<Array<Int>>()
+	val registerValues: LiveData<Array<Int>>
+		get() = _registerValues
+
 	/**
 	 * Conjoin two bytes (usually registers).
 	 *
@@ -81,7 +93,7 @@ object CPU {
 	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
 	 * is because that would require said property to be a variable rather than a value.
 	 */
-	fun getRegisterValues(): Array<Int> {
+	private fun updateDebugData() {
 		val list = mutableListOf<Int>().apply {
 			reg.forEach { add(it.value.toInt()) }
 
@@ -93,7 +105,8 @@ object CPU {
 			add(sp.value.toInt())
 			add(pc.value.toInt())
 		}
-		return list.toTypedArray()
+
+		_registerValues.postValue(list.toTypedArray())
 	}
 
 	// endregion
@@ -102,6 +115,30 @@ object CPU {
 
 	private var machineCycles: Int = 0
 	private var endTimestamp: Long = 0
+	private var isCpuRunning = false
+
+	fun bootFromBootRom(context: Context) {
+		scope.launch {
+			powerOff()
+			val rom = context.resources.openRawResource(R.raw.dmg_boot)
+			write(rom.readBytes(), 0)
+			withContext(Dispatchers.IO) { rom.close() }
+			startCoreLoop()
+		}
+	}
+
+	fun bootFromCartridge(bytes: ByteArray) {
+		scope.launch {
+			powerOff()
+			write(bytes, BYPASS_BOOTSTRAP_ADDRESS.toInt())
+			startCoreLoop()
+		}
+	}
+
+	fun powerOff() {
+		isCpuRunning = false
+		clearMemory()
+	}
 
 	/**
 	 * Run the fetch -> decode -> execute loop indefinitely.
@@ -118,11 +155,14 @@ object CPU {
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
 	 * the [CPUConstants.MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
-	fun startCoreLoop() {
-		clearMemory()
+	private fun startCoreLoop() {
+		isCpuRunning = true
 		startNewCycleBatch()
 
 		while (true) {
+			if (!isCpuRunning)
+				return
+
 			if (now() >= endTimestamp) {
 				if (BuildConfig.FLAVOR == DEV_FLAVOR)
 					logBatchComplete()
@@ -138,6 +178,8 @@ object CPU {
 				runPrefixedInstruction(opcode)
 			else
 				runUnprefixedInstruction(opcode)
+
+			updateDebugData()
 		}
 	}
 
@@ -164,8 +206,10 @@ object CPU {
 
 	private fun runUnprefixedInstruction(opcode: UByte) {
 		// NOP.
-		if (opcode.toInt() == 0x0)
+		if (opcode.toInt() == 0x0) {
 			machineCycles++
+			return
+		}
 
 		else if (maskOpcode(SUB_MASK, opcode.convertToBin())) {
 			val ls3b = (opcode.toInt() and 0x7).toUByte()
@@ -185,15 +229,18 @@ object CPU {
 
 			subtract(reg[ls3b.toInt()].value)
 			machineCycles++
+			return
 		}
 
 		else if (opcode.toInt() == 0xD6) {
 			subtract(fetchOpcode())
 			machineCycles += 2
+			return
 		}
 
 		else if (opcode.toInt() == 0x76) {
 			// TOOD: Implement HALT instruction.
+//			TODO("0x${opcode.convertToHex2()}")
 		}
 
 		else if (maskOpcode(LD_MASK_4X, opcode.convertToBin()) ||
@@ -238,13 +285,14 @@ object CPU {
 
 			load(dest, source)
 			machineCycles = machineCycles + incrementCyclesBy
+			return
 		}
 
-		TODO("Not yet implemented.")
+//		TODO("0x${opcode.convertToHex2()}")
 	}
 
 	private fun runPrefixedInstruction(opcode: UByte) {
-		TODO("Not yet implemented.")
+		TODO("Not yet implemented: ${opcode.convertToHex4()}")
 	}
 
 	/**
@@ -346,17 +394,6 @@ object CPU {
 		bytes.forEachIndexed { index, byte ->
 			bus[index + offset] = RefUByte(byte.toUByte())
 		}
-	}
-
-	fun boot(context: Context) {
-		val rom = context.resources.openRawResource(R.raw.dmg_boot)
-		write(rom.readBytes(), 0)
-		rom.close()
-		startCoreLoop()
-	}
-
-	fun bootFromCartridge(bytes: ByteArray) {
-		write(bytes, BYPASS_BOOTSTRAP_ADDRESS.toInt())
 	}
 
 	private fun clearMemory() {
