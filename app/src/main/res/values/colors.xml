@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-	<color name="purple_200">#FFBB86FC</color>
-	<color name="purple_500">#FF6200EE</color>
-	<color name="purple_700">#FF3700B3</color>
-	<color name="teal_200">#FF03DAC5</color>
-	<color name="teal_700">#FF018786</color>
-	<color name="black">#FF000000</color>
-	<color name="white">#FFFFFFFF</color>
+	<color name="black">#000000</color>
+	<color name="white">#FFFFFF</color>
+
+	<color name="gameboy_purple">#9D00FD</color>
+	<color name="gameboy_cyan">#02B7D4</color>
+	<color name="gameboy_screen_border">#2E2E2E</color>
+
+	<color name="button_background">#2A2A29</color>
+	<color name="button_inside">#3A3A39</color>
+	<color name="button_transparent_blue">#4D0000ff</color>
 </resources>

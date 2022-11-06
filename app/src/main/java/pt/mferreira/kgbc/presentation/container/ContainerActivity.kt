@@ -39,6 +39,8 @@ class ContainerActivity : BaseActivity() {
 		// Up button won't be displayed on these fragments.
 		appBarConfiguration = AppBarConfiguration(setOf(R.id.gameboyFragment))
 		setupActionBarWithNavController(navController, appBarConfiguration)
+
+		supportActionBar?.setDisplayShowTitleEnabled(false)
 	}
 
 	override fun setupObservers() {

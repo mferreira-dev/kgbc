@@ -1,11 +1,14 @@
 package pt.mferreira.kgbc.presentation.gameboy
 
 import android.app.Application
+import android.content.Intent
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.RomManager
+import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -13,6 +16,10 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 	companion object {
 		const val GB_EXT = "gb"
 		const val GBC_EXT = "gbc"
+	}
+
+	init {
+		RomManager.deleteTempRom(app.applicationContext)
 	}
 
 	fun handleFilePickerResult(result: ActivityResult) {
@@ -37,16 +44,23 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 					return@outer
 				}
 
-				val byteCursor = app.applicationContext.contentResolver?.openInputStream(uri)
-				RomManager.copyRomToInternalStorage(
-					app.applicationContext,
-					byteCursor?.readBytes() ?: ByteArray(0)
-				)
-				byteCursor?.close()
+				// User selected an actual ROM file, it is now safe to delete the temp ROM.
+				RomManager.deleteTempRom(app.applicationContext)
 
-				// TODO: Load banks.
+				val byteCursor = app.applicationContext.contentResolver?.openInputStream(uri)
+				val bytes = byteCursor?.readBytes() ?: ByteArray(0)
+
+				RomManager.copyRomToInternalStorage(app.applicationContext, bytes)
+				CPU.bootFromCartridge(bytes)
+
+				byteCursor?.close()
 			}
 		}
+	}
+
+	fun openRom(filePicker: ActivityResultLauncher<Intent>) {
+		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
+		filePicker.launch(intent)
 	}
 
 }
