@@ -177,6 +177,11 @@ object CPU {
 			subtract(reg[ls3b.toInt()].value)
 			machineCycles++
 		}
+
+		else if (opcode.toInt() == 0xD6) {
+			subtract(fetchOpcode())
+			machineCycles += 2
+		}
 	}
 
 	private fun runPrefixedInstruction(opcode: UByte) {}
@@ -185,7 +190,9 @@ object CPU {
 	 * Returns the value of the address currently pointed at by the PC in binary.
 	 */
 	private fun fetchOpcode(): UByte {
-		return bus[pc.value.toInt()].value
+		val opcode = bus[pc.value.toInt()].value
+		pc.value++
+		return opcode
 	}
 
 	/**
