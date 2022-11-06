@@ -118,7 +118,8 @@ object CPU {
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
 	 * the [CPUConstants.MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
-	fun run() {
+	fun startCoreLoop() {
+		clearMemory()
 		startNewCycleBatch()
 
 		while (true) {
@@ -162,7 +163,11 @@ object CPU {
 	}
 
 	private fun runUnprefixedInstruction(opcode: UByte) {
-		if (maskOpcode(SUB_MASK, opcode.convertToBin())) {
+		// NOP.
+		if (opcode.toInt() == 0x0)
+			machineCycles++
+
+		else if (maskOpcode(SUB_MASK, opcode.convertToBin())) {
 			val ls3b = (opcode.toInt() and 0x7).toUByte()
 
 			if (ls3b.toInt() == 0x6) {
@@ -343,8 +348,23 @@ object CPU {
 		}
 	}
 
-	fun insertCartridge(bytes: ByteArray) {
+	fun boot(context: Context) {
+		val rom = context.resources.openRawResource(R.raw.dmg_boot)
+		write(rom.readBytes(), 0)
+		rom.close()
+		startCoreLoop()
+	}
+
+	fun bootFromCartridge(bytes: ByteArray) {
 		write(bytes, BYPASS_BOOTSTRAP_ADDRESS.toInt())
+	}
+
+	private fun clearMemory() {
+		bus.forEach { it.value = 0x0u }
+		reg.forEach { it.value = 0x0u }
+		sp.value = STACK_POINTER_STARTING_ADDRESS
+//		pc.value = BYPASS_BOOTSTRAP_ADDRESS
+		pc.value = 0x0u
 	}
 
 	// endregion
@@ -485,10 +505,6 @@ object CPU {
 		}
 
 		displayToast(context, context.getString(R.string.dumped_bus, dump.name))
-	}
-
-	fun boot() {
-		
 	}
 
 	// endregion
