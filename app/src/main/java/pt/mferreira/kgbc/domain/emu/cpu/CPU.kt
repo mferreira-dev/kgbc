@@ -14,6 +14,10 @@ import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.E_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.F_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.GAMEBOY_BUS_TOTAL_ADDRESSES
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.H_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_4X
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_5X
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_6X
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_7X
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.L_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.MAX_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.NUMBER_OF_8_BIT_REGISTERS
@@ -182,9 +186,61 @@ object CPU {
 			subtract(fetchOpcode())
 			machineCycles += 2
 		}
+
+		else if (opcode.toInt() == 0x76) {
+			// TOOD: Implement HALT instruction.
+		}
+
+		else if (maskOpcode(LD_MASK_4X, opcode.convertToBin()) ||
+				   maskOpcode(LD_MASK_5X, opcode.convertToBin()) ||
+				   maskOpcode(LD_MASK_6X, opcode.convertToBin()) ||
+				   maskOpcode(LD_MASK_7X, opcode.convertToBin())
+		) {
+
+			val ms4b = (opcode.toInt() and 0xF0)
+			val ls4b = (opcode.toInt() and 0xF)
+
+			val dest = if (ms4b == 0x40) {
+				if (ls4b < 0x8) reg[B_IDX]
+				else reg[C_IDX]
+			} else if (ms4b == 0x50) {
+				if (ls4b < 0x8) reg[D_IDX]
+				else reg[E_IDX]
+			} else if (ms4b == 0x60) {
+				if (ls4b < 0x8) reg[H_IDX]
+				else reg[L_IDX]
+			} else {
+				if (ls4b < 0x8) bus[conjoin(reg[H_IDX], reg[L_IDX]).value.toInt()]
+				else reg[A_IDX]
+			}
+
+			val source = if (ls4b == 0x6 || ls4b == 0xE)
+				bus[conjoin(reg[H_IDX], reg[L_IDX]).value.toInt()]
+			else if (ls4b == 0x7 || ls4b == 0xF)
+				reg[A_IDX]
+			else {
+				if (ls4b < 0x8) reg[ls4b]
+				else reg[ls4b - 8]
+			}
+
+			val incrementCyclesBy = if (ls4b == 0x6 || ls4b == 0xE) 2
+			else {
+				if (ms4b == 0x70) {
+					if (ls4b < 0x8) 2
+					else 1
+				} else 1
+			}
+
+			load(dest, source)
+			machineCycles = machineCycles + incrementCyclesBy
+		}
+
+		TODO("Not yet implemented.")
 	}
 
-	private fun runPrefixedInstruction(opcode: UByte) {}
+	private fun runPrefixedInstruction(opcode: UByte) {
+		TODO("Not yet implemented.")
+	}
 
 	/**
 	 * Returns the value of the address currently pointed at by the PC in binary.
@@ -231,7 +287,7 @@ object CPU {
 	 * @param dest Where to write.
 	 * @param source What to write.
 	 */
-	fun load(dest: RefUByte, source: RefUByte) {
+	private fun load(dest: RefUByte, source: RefUByte) {
 		dest.value = source.value
 	}
 
@@ -429,6 +485,10 @@ object CPU {
 		}
 
 		displayToast(context, context.getString(R.string.dumped_bus, dump.name))
+	}
+
+	fun boot() {
+		
 	}
 
 	// endregion

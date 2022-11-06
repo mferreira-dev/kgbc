@@ -17,6 +17,7 @@ import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
 import pt.mferreira.kgbc.utils.convertToHex4
+import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyFragment : BaseFragment() {
 
@@ -100,6 +101,10 @@ class GameboyFragment : BaseFragment() {
 					}
 					R.id.menu_dump_memory -> {
 						CPU.dump(requireContext())
+						true
+					}
+					R.id.menu_boot -> {
+						CPU.boot()
 						true
 					}
 					else -> false

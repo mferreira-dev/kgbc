@@ -3,6 +3,10 @@ package pt.mferreira.kgbc.domain.emu.cpu
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.A_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.B_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.C_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.D_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.E_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.F_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.GAMEBOY_BUS_TOTAL_ADDRESSES
 import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.H_IDX
@@ -205,6 +209,83 @@ class CPUTest {
 		val oldRegA = reg[A_IDX].value
 		subtract(reg[ls3b.toInt()].value)
 		assertTrue(reg[A_IDX].value.toInt() + reg[ls3b.toInt()].value.toInt() == oldRegA.toInt())
+	}
+	
+	@Test
+	fun largeLoadGroup() {
+		val opcode: UByte = 0x7Au
+
+		val ms4b = (opcode.toInt() and 0xF0)
+		val ls4b = (opcode.toInt() and 0xF)
+
+		val destPath: Int
+		val sourcePath: Int
+
+		val dest = if (ms4b == 0x40) {
+			if (ls4b < 0x8) {
+				reg[B_IDX]
+				destPath = 0
+			}else {
+				reg[C_IDX]
+				destPath = 1
+			}
+		} else if (ms4b == 0x50) {
+			if (ls4b < 0x8) {
+				reg[D_IDX]
+				destPath = 2
+			} else {
+				reg[E_IDX]
+				destPath = 3
+			}
+		} else if (ms4b == 0x60) {
+			if (ls4b < 0x8) {
+				reg[H_IDX]
+				destPath = 4
+			} else {
+				reg[L_IDX]
+				destPath = 5
+			}
+		} else {
+			if (ls4b < 0x8) {
+				bus[conjoin(reg[H_IDX], reg[L_IDX]).value.toInt()]
+				destPath = 6
+			} else {
+				reg[A_IDX]
+				destPath = 7
+			}
+		}
+
+		val source = if (ls4b == 0x6 || ls4b == 0xE) {
+			bus[conjoin(reg[H_IDX], reg[L_IDX]).value.toInt()]
+			sourcePath = 0
+		} else if (ls4b == 0x7 || ls4b == 0xF) {
+			reg[A_IDX]
+			sourcePath = 1
+		} else {
+			if (ls4b < 0x8) {
+				reg[ls4b]
+				sourcePath = 2
+			} else {
+				reg[ls4b - 8]
+				sourcePath = 3
+			}
+		}
+
+		val incrementCyclesBy = if (ls4b == 0x6 || ls4b == 0xE)
+			2
+		else {
+			if (ms4b == 0x70) {
+				if (ls4b < 0x8)
+					2
+				else
+					1
+			} else
+				1
+		}
+
+		assertTrue(destPath == 7)
+		assertTrue(sourcePath == 3)
+		assertTrue(incrementCyclesBy == 1)
 	}
 
 }
