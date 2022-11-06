@@ -27,6 +27,8 @@ import java.io.File
 
 object CPU {
 
+	// region Bus
+
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
 	 * on the stack rather than the heap (a list would be stored on the heap).
@@ -57,6 +59,13 @@ object CPU {
 //	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS.toUShort())
 	private var pc: RefUShort = RefUShort()
 
+	private fun conjoinRegisters(msb: RefUByte, lsb: RefUByte): RefUShort {
+		return RefUShort().apply {
+			value = value or RefUShort(msb.value.toUShort() shl 8).value
+			value = value or RefUShort(lsb.value.toUShort()).value
+		}
+	}
+
 	/**
 	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
 	 * is because that would require said property to be a variable rather than a value.
@@ -76,22 +85,9 @@ object CPU {
 		return list.toTypedArray()
 	}
 
-	/**
-	 * Dump the GameBoy's current address bus to an internal text file.
-	 */
-	fun dump(context: Context) {
-		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")
+	// endregion
 
-		dump.printWriter().use { printer ->
-			bus.forEachIndexed { index, refUByte ->
-				var buffer = refUByte.value.convertToHex4()
-				buffer += if ((index + 1) % 20 == 0) "\n" else " "
-				printer.print(buffer)
-			}
-		}
-
-		displayToast(context, context.getString(R.string.dumped_bus, dump.name))
-	}
+	// region Run
 
 	private var cycles: Int = 0
 	private var endTimestamp: Long = 0
@@ -186,17 +182,6 @@ object CPU {
 		return bus[pc.value.toInt()].value
 	}
 
-	fun insertCartridge(bytes: ByteArray) {
-		write(bytes, BYPASS_BOOTSTRAP_ADDRESS)
-	}
-
-	private fun conjoinRegisters(msb: RefUByte, lsb: RefUByte): RefUShort {
-		return RefUShort().apply {
-			value = value or RefUShort(msb.value.toUShort() shl 8).value
-			value = value or RefUShort(lsb.value.toUShort()).value
-		}
-	}
-
 	/**
 	 * The Z80's processor has a variety of instruction groups that share a lot of the same bits.
 	 * Using those bits as a mask we can find out to which group a particular opcode belongs to.
@@ -219,6 +204,10 @@ object CPU {
 
 		return isMatch
 	}
+
+	// endregion
+
+	// region Load
 
 	/**
 	 * Example:
@@ -259,6 +248,10 @@ object CPU {
 		}
 	}
 
+	// endregion
+
+	// region Write
+
 	/**
 	 * Writes a byte to memory at offset.
 	 *
@@ -281,6 +274,14 @@ object CPU {
 		}
 	}
 
+	fun insertCartridge(bytes: ByteArray) {
+		write(bytes, BYPASS_BOOTSTRAP_ADDRESS)
+	}
+
+	// endregion
+
+	// region Arithmetic
+
 	private fun add(source: UByte) {
 		reg[A_IDX].value = (reg[A_IDX].value + source).toUByte()
 
@@ -298,6 +299,10 @@ object CPU {
 		setHalfCarryFlagSub(reg[A_IDX].value, source)
 		setCarryFlagSub(reg[A_IDX].value, source)
 	}
+
+	// endregion
+
+	// region FlagHandlers
 
 	private fun setZeroFlagAdd(operand1: UByte, operand2: UByte) {
 		setZeroFlag((operand1 + operand2).toUByte() == RefUByte().value)
@@ -375,6 +380,10 @@ object CPU {
 			reg[F_IDX].value = (reg[F_IDX].value.toInt() and 0xE0).toUByte()
 	}
 
+	// endregion
+
+	// region Stack
+
 	private fun popStack() {
 		sp.value = (sp.value + 2u).toUShort()
 	}
@@ -389,5 +398,26 @@ object CPU {
 		write((bytes shr 8).toUByte(), sp.value.toInt())
 		write(bytes.toUByte(), sp.value.toInt() + 1)
 	}
+
+	// region Misc
+
+	/**
+	 * Dump the GameBoy's current address bus to an internal text file.
+	 */
+	fun dump(context: Context) {
+		val dump = File(context.filesDir, "dump_" + getCurrentDate() + ".txt")
+
+		dump.printWriter().use { printer ->
+			bus.forEachIndexed { index, refUByte ->
+				var buffer = refUByte.value.convertToHex4()
+				buffer += if ((index + 1) % 20 == 0) "\n" else " "
+				printer.print(buffer)
+			}
+		}
+
+		displayToast(context, context.getString(R.string.dumped_bus, dump.name))
+	}
+
+	// endregion
 
 }
