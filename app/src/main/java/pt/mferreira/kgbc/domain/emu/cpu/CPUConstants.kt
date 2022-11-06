@@ -41,8 +41,8 @@ object CPUConstants {
 	const val A_IDX = 6
 	const val F_IDX = 7
 
-	const val DEBUG_CPU = "kgbc-cpu"
 	const val PREFIXED_INSTRUCTION = "CB"
-
 	const val SUB_MASK = "10010___"
+
+	const val DEBUG_CPU = "kgbc-cpu"
 }

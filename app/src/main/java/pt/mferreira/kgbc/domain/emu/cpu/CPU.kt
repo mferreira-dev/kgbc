@@ -89,7 +89,7 @@ object CPU {
 
 	// region Run
 
-	private var cycles: Int = 0
+	private var machineCycles: Int = 0
 	private var endTimestamp: Long = 0
 
 	/**
@@ -118,7 +118,7 @@ object CPU {
 				startNewCycleBatch()
 			}
 
-			if (cycles == MAX_CYCLES_PER_SECOND)
+			if (machineCycles == MAX_CYCLES_PER_SECOND)
 				continue
 
 			val opcode = fetchOpcode()
@@ -132,7 +132,7 @@ object CPU {
 	private fun startNewCycleBatch() {
 		val now = now()
 		endTimestamp = now + 1000L
-		cycles = 0
+		machineCycles = 0
 
 		if (BuildConfig.FLAVOR != DEV_FLAVOR)
 			return
@@ -152,24 +152,23 @@ object CPU {
 
 	private fun runUnprefixedInstruction(opcode: UByte) {
 		if (maskOpcode(SUB_MASK, opcode.convertToBin())) {
-			// Check for 0x96.
 			val ls3b = (opcode.toInt() and 0x7).toUByte()
 
 			if (ls3b.toInt() == 0x6) {
 				val addr = conjoinRegisters(reg[H_IDX], reg[L_IDX]).value
-				sub(bus[addr.toInt()].value)
-				cycles += 2
+				subtract(bus[addr.toInt()].value)
+				machineCycles += 2
 				return
 			}
 
 			if (ls3b.toInt() == 0x7) {
-				sub(reg[A_IDX].value)
-				cycles++
+				subtract(reg[A_IDX].value)
+				machineCycles++
 				return
 			}
 
-			sub(reg[ls3b.toInt()].value)
-			cycles++
+			subtract(reg[ls3b.toInt()].value)
+			machineCycles++
 		}
 	}
 
@@ -282,7 +281,7 @@ object CPU {
 
 	// region Arithmetic
 
-	private fun add(source: UByte) {
+	private fun addition(source: UByte) {
 		reg[A_IDX].value = (reg[A_IDX].value + source).toUByte()
 
 		setSubFlag(false)
@@ -291,7 +290,7 @@ object CPU {
 		setCarryFlagAdd(reg[A_IDX].value, source)
 	}
 
-	private fun sub(source: UByte) {
+	private fun subtract(source: UByte) {
 		reg[A_IDX].value = (reg[A_IDX].value - source).toUByte()
 
 		setSubFlag(true)
@@ -302,7 +301,7 @@ object CPU {
 
 	// endregion
 
-	// region FlagHandlers
+	// region Flag handlers
 
 	private fun setZeroFlagAdd(operand1: UByte, operand2: UByte) {
 		setZeroFlag((operand1 + operand2).toUByte() == RefUByte().value)
