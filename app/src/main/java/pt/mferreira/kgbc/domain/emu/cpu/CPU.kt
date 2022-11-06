@@ -126,7 +126,7 @@ object CPU {
 				continue
 
 			val opcode = fetchOpcode()
-			if (opcode == PREFIXED_INSTRUCTION)
+			if (opcode.convertToBin() == PREFIXED_INSTRUCTION)
 				runPrefixedInstruction(opcode)
 			else
 				runUnprefixedInstruction(opcode)
@@ -154,21 +154,36 @@ object CPU {
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
-	private fun runUnprefixedInstruction(opcode: String) {
-		if (maskOpcode(SUB_MASK, opcode)) {
+	private fun runUnprefixedInstruction(opcode: UByte) {
+		if (maskOpcode(SUB_MASK, opcode.convertToBin())) {
+			// Check for 0x96.
+			val ls3b = (opcode.toInt() and 0x7).toUByte()
 
+			if (ls3b.toInt() == 0x6) {
+				val addr = conjoinRegisters(reg[H_IDX], reg[L_IDX]).value
+				sub(bus[addr.toInt()].value)
+				cycles += 2
+				return
+			}
+
+			if (ls3b.toInt() == 0x7) {
+				sub(reg[A_IDX].value)
+				cycles++
+				return
+			}
+
+			sub(reg[ls3b.toInt()].value)
+			cycles++
 		}
 	}
 
-	private fun runPrefixedInstruction(opcode: String) {
-
-	}
+	private fun runPrefixedInstruction(opcode: UByte) {}
 
 	/**
 	 * Returns the value of the address currently pointed at by the PC in binary.
 	 */
-	private fun fetchOpcode(): String {
-		return bus[pc.value.toInt()].value.convertToBin()
+	private fun fetchOpcode(): UByte {
+		return bus[pc.value.toInt()].value
 	}
 
 	fun insertCartridge(bytes: ByteArray) {
@@ -266,49 +281,98 @@ object CPU {
 		}
 	}
 
+	private fun add(source: UByte) {
+		reg[A_IDX].value = (reg[A_IDX].value + source).toUByte()
+
+		setSubFlag(false)
+		setZeroFlagAdd(reg[A_IDX].value, source)
+		setHalfCarryFlagAdd(reg[A_IDX].value, source)
+		setCarryFlagAdd(reg[A_IDX].value, source)
+	}
+
 	private fun sub(source: UByte) {
-//		reg[A_IDX].value = (reg[A_IDX].value - source).toUByte()
+		reg[A_IDX].value = (reg[A_IDX].value - source).toUByte()
 
+		setSubFlag(true)
+		setZeroFlagSub(reg[A_IDX].value, source)
+		setHalfCarryFlagSub(reg[A_IDX].value, source)
+		setCarryFlagSub(reg[A_IDX].value, source)
 	}
 
-	private fun carryAdd(operand1: UByte, operand2: UByte): Boolean {
-		return (operand1.toInt() + operand2.toInt()) and 0x100 == 0x100
+	private fun setZeroFlagAdd(operand1: UByte, operand2: UByte) {
+		setZeroFlag((operand1 + operand2).toUByte() == RefUByte().value)
 	}
 
-	private fun carryAdd(operand1: UShort, operand2: UShort): Boolean {
-		return (operand1.toInt() + operand2.toInt()) and 0x10000 == 0x10000
+	private fun setZeroFlagSub(operand1: UByte, operand2: UByte) {
+		setZeroFlag((operand1 - operand2).toUByte() == RefUByte().value)
 	}
 
-	private fun carrySub(operand1: UByte, operand2: UByte): Boolean {
-		return (operand1.toInt() - operand2.toInt()) and 0x100 == 0x100
+	private fun setZeroFlag(set: Boolean) {
+		if (set)
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() or 0x80).toUByte()
+		else
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() and 0x70).toUByte()
 	}
 
-	private fun carrySub(operand1: UShort, operand2: UShort): Boolean {
-		return (operand1.toInt() - operand2.toInt()) and 0x10000 == 0x10000
+	private fun setSubFlag(set: Boolean) {
+		if (set)
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() or 0x40).toUByte()
+		else
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() and 0xB0).toUByte()
 	}
 
-	private fun halfCarryAdd(operand1: UByte, operand2: UByte): Boolean {
-		return (((operand1.toInt() and 0xF) + (operand2.toInt() and 0xF)) and 0x10) == 0x10
+	private fun setHalfCarryFlagAdd(operand1: UByte, operand2: UByte) {
+		val result = (((operand1.toInt() and 0xF) + (operand2.toInt() and 0xF)) and 0x10) == 0x10
+		setHalfCarryFlag(result)
 	}
 
-	private fun halfCarryAdd(operand1: UShort, operand2: UShort): Boolean {
-		return (((operand1.toInt() and 0xFFF) + (operand2.toInt() and 0xFFF)) and 0x1000) == 0x1000
+	private fun setHalfCarryFlagAdd(operand1: UShort, operand2: UShort) {
+		val result = (((operand1.toInt() and 0xFFF) + (operand2.toInt() and 0xFFF)) and 0x1000) == 0x1000
+		setHalfCarryFlag(result)
 	}
 
-	private fun halfCarrySub(operand1: UByte, operand2: UByte): Boolean {
-		return (((operand1.toInt() and 0xF) - (operand2.toInt() and 0xF)) and 0x10) == 0x10
+	private fun setHalfCarryFlagSub(operand1: UByte, operand2: UByte) {
+		val result = (((operand1.toInt() and 0xF) - (operand2.toInt() and 0xF)) and 0x10) == 0x10
+		setHalfCarryFlag(result)
 	}
 
-	private fun halfCarrySub(operand1: UShort, operand2: UShort): Boolean {
-		return (((operand1.toInt() and 0xFFF) - (operand2.toInt() and 0xFFF)) and 0x1000) == 0x1000
+	private fun setHalfCarryFlagSub(operand1: UShort, operand2: UShort) {
+		val result = (((operand1.toInt() and 0xFFF) - (operand2.toInt() and 0xFFF)) and 0x1000) == 0x1000
+		setHalfCarryFlag(result)
 	}
 
-	private fun zeroFlagAdd(operand1: UByte, operand2: UByte): Boolean {
-		return (operand1 + operand2).toUByte() == RefUByte().value
+	private fun setHalfCarryFlag(set: Boolean) {
+		if (set)
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() or 0x20).toUByte()
+		else
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() and 0xD0).toUByte()
 	}
 
-	private fun zeroFlagSub(operand1: UByte, operand2: UByte): Boolean {
-		return (operand1 - operand2).toUByte() == RefUByte().value
+	private fun setCarryFlagAdd(operand1: UByte, operand2: UByte) {
+		val result = (operand1 + operand2).toInt() and 0x100 == 0x100
+		setCarryFlag(result)
+	}
+
+	private fun setCarryFlagAdd(operand1: UShort, operand2: UShort) {
+		val result = (operand1 + operand2).toInt() and 0x10000 == 0x10000
+		setCarryFlag(result)
+	}
+
+	private fun setCarryFlagSub(operand1: UByte, operand2: UByte) {
+		val result = (operand1 - operand2).toInt() and 0x100 == 0x100
+		setCarryFlag(result)
+	}
+
+	private fun setCarryFlagSub(operand1: UShort, operand2: UShort) {
+		val result = (operand1 - operand2).toInt() and 0x10000 == 0x10000
+		setCarryFlag(result)
+	}
+
+	private fun setCarryFlag(set: Boolean) {
+		if (set)
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() or 0x10).toUByte()
+		else
+			reg[F_IDX].value = (reg[F_IDX].value.toInt() and 0xE0).toUByte()
 	}
 
 	private fun popStack() {
