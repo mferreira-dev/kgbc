@@ -66,7 +66,7 @@ object CPU {
 	 * @param msb The most significant byte. Will be shifted left 8 bits.
 	 * @param lsb The least significant byte. Will be positioned at the least significant 8 bits.
 	 */
-	fun conjoin(msb: RefUByte, lsb: RefUByte): RefUShort {
+	private fun conjoin(msb: RefUByte, lsb: RefUByte): RefUShort {
 		return RefUShort().apply {
 			value = value or RefUShort(msb.value.toUShort() shl 8).value
 			value = value or RefUShort(lsb.value.toUShort()).value
