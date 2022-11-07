@@ -7,8 +7,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
 import pt.mferreira.kgbc.R
-import pt.mferreira.kgbc.domain.emu.RomManager
-import pt.mferreira.kgbc.domain.emu.cpu.CPU
+import pt.mferreira.kgbc.domain.emu.Emulator
 import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -18,9 +17,7 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 		const val GBC_EXT = "gbc"
 	}
 
-	init {
-		RomManager.deleteTempRom(app.applicationContext)
-	}
+	private val emulator = Emulator()
 
 	fun handleFilePickerResult(result: ActivityResult) {
 		result.data?.data?.let outer@{ uri ->
@@ -44,14 +41,10 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 					return@outer
 				}
 
-				// User selected an actual ROM file, it is now safe to delete the temp ROM.
-				RomManager.deleteTempRom(app.applicationContext)
-
 				val byteCursor = app.applicationContext.contentResolver?.openInputStream(uri)
 				val bytes = byteCursor?.readBytes() ?: ByteArray(0)
 
-				RomManager.copyRomToInternalStorage(app.applicationContext, bytes)
-				CPU.bootFromCartridge(bytes)
+				emulator.startGame(app.applicationContext, bytes)
 
 				byteCursor?.close()
 			}
@@ -61,6 +54,18 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 	fun openRom(filePicker: ActivityResultLauncher<Intent>) {
 		val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
 		filePicker.launch(intent)
+	}
+
+	fun powerOn() {
+		emulator.powerOn(app.applicationContext)
+	}
+
+	fun powerOff() {
+		emulator.powerOff()
+	}
+
+	fun dumpMemory() {
+		emulator.dumpMemory(app.applicationContext)
 	}
 
 }

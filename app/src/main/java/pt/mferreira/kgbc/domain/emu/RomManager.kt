@@ -4,11 +4,11 @@ import android.content.Context
 import java.io.File
 import java.io.FileOutputStream
 
-object RomManager {
-	private const val TEMP_ROM_NAME = "temp_rom.gb"
+class RomManager {
 
-	var hasRomInserted: Boolean = false
-		private set
+	companion object {
+		const val TEMP_ROM_NAME = "temp_rom.gb"
+	}
 
 	/**
 	 * Unfortunately a URI does not provide us with a file's given path.
@@ -21,16 +21,16 @@ object RomManager {
 		deleteTempRom(context)
 		val fos = FileOutputStream(File(context.filesDir, TEMP_ROM_NAME))
 		fos.write(bytes)
-		hasRomInserted = true
 	}
 
 	private fun doesFileExist(file: File): Boolean {
 		return file.exists()
 	}
 
-	fun deleteTempRom(context: Context) {
+	private fun deleteTempRom(context: Context) {
 		val tempRom = File(context.filesDir, TEMP_ROM_NAME)
 		if (!doesFileExist(tempRom)) return
 		else tempRom.delete()
 	}
+
 }

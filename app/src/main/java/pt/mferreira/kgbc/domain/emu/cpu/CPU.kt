@@ -2,43 +2,40 @@ package pt.mferreira.kgbc.domain.emu.cpu
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.A_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.BYPASS_BOOTSTRAP_ADDRESS
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.B_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.C_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.DEBUG_CPU
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.D_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.E_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.F_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.GAMEBOY_BUS_TOTAL_ADDRESSES
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.H_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_4X
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_5X
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_6X
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.LD_MASK_7X
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.L_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.MAX_CYCLES_PER_SECOND
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.NUMBER_OF_8_BIT_REGISTERS
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.PREFIXED_INSTRUCTION
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.STACK_POINTER_STARTING_ADDRESS
-import pt.mferreira.kgbc.domain.emu.cpu.CPUConstants.SUB_MASK
-import pt.mferreira.kgbc.domain.emu.entities.RefUByte
-import pt.mferreira.kgbc.domain.emu.entities.RefUShort
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.A_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.BYPASS_BOOTSTRAP_ADDRESS
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.B_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.C_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.DEBUG_CPU
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.D_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.E_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.F_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.GAMEBOY_BUS_TOTAL_ADDRESSES
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.H_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_4X
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_5X
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_6X
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_7X
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.L_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.MAX_CYCLES_PER_SECOND
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.NUMBER_OF_8_BIT_REGISTERS
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.PREFIXED_INSTRUCTION
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.STACK_POINTER_STARTING_ADDRESS
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.SUB_MASK
+import pt.mferreira.kgbc.domain.entities.RefUByte
+import pt.mferreira.kgbc.domain.entities.RefUShort
 import pt.mferreira.kgbc.utils.*
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
 import java.io.File
 
-object CPU {
+class CPU {
 
-	// region Bus
+	// region Memory
 
 	/**
 	 * An array is better for data that has a known size at compile time since it's stored
@@ -70,12 +67,6 @@ object CPU {
 //	private var pc: RefUShort = RefUShort(BYPASS_BOOTSTRAP_ADDRESS)
 	private var pc: RefUShort = RefUShort()
 
-	private val scope = CoroutineScope(Dispatchers.Default)
-
-	private val _registerValues = MutableLiveData<Array<Int>>()
-	val registerValues: LiveData<Array<Int>>
-		get() = _registerValues
-
 	/**
 	 * Conjoin two bytes (usually registers).
 	 *
@@ -89,24 +80,14 @@ object CPU {
 		}
 	}
 
-	/**
-	 * The reason why we don't use Kotlin's property access syntax (and add private set) instead
-	 * is because that would require said property to be a variable rather than a value.
-	 */
-	private fun updateDebugData() {
-		val list = mutableListOf<Int>().apply {
-			reg.forEach { add(it.value.toInt()) }
+	fun fetchMemory(start: Int, length: Int): Array<RefUByte> {
+		val array = Array(length) { RefUByte() }
 
-			add(conjoin(reg[A_IDX], reg[F_IDX]).value.toInt())
-			add(conjoin(reg[B_IDX], reg[C_IDX]).value.toInt())
-			add(conjoin(reg[D_IDX], reg[E_IDX]).value.toInt())
-			add(conjoin(reg[H_IDX], reg[L_IDX]).value.toInt())
-
-			add(sp.value.toInt())
-			add(pc.value.toInt())
+		array.forEachIndexed { index, _ ->
+			array[index] = bus[index + start]
 		}
 
-		_registerValues.postValue(list.toTypedArray())
+		return array
 	}
 
 	// endregion
@@ -117,13 +98,13 @@ object CPU {
 	private var endTimestamp: Long = 0
 	private var isCpuRunning = false
 
-	fun bootFromBootRom(context: Context) {
+	private val scope = CoroutineScope(Dispatchers.Default)
+
+	fun bootFromBootRom(bytes: ByteArray) {
 		scope.launch {
 			powerOff()
-			val rom = context.resources.openRawResource(R.raw.dmg_boot)
-			write(rom.readBytes(), 0)
-			withContext(Dispatchers.IO) { rom.close() }
-			startCoreLoop()
+			write(bytes, 0)
+//			startCoreLoop()
 		}
 	}
 
@@ -143,17 +124,17 @@ object CPU {
 	/**
 	 * Run the fetch -> decode -> execute loop indefinitely.
 	 *
-	 * The CPU will continously run at [CPUConstants.MAX_CYCLES_PER_SECOND].
+	 * The CPU will continously run at [Constants.MAX_CYCLES_PER_SECOND].
 	 * This is achieved in the following way:
 	 *
 	 * 1. The system starts a new cycle batch every second, which means the CPU
-	 * will loop exactly [CPUConstants.MAX_CYCLES_PER_SECOND] times.
+	 * will loop exactly [Constants.MAX_CYCLES_PER_SECOND] times.
 	 * A now() call provides the batch's beginning point while simply adding 1000
 	 * to that same tell us when it should end.
 	 *
 	 * 2. At the beginning of each while loop cycle the system checks if it's time to start yet another batch.
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
-	 * the [CPUConstants.MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
+	 * the [Constants.MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
 	private fun startCoreLoop() {
 		isCpuRunning = true
@@ -178,8 +159,6 @@ object CPU {
 				runPrefixedInstruction(opcode)
 			else
 				runUnprefixedInstruction(opcode)
-
-			updateDebugData()
 		}
 	}
 
@@ -240,7 +219,7 @@ object CPU {
 
 		else if (opcode.toInt() == 0x76) {
 			// TOOD: Implement HALT instruction.
-//			TODO("0x${opcode.convertToHex2()}")
+			TODO("0x${opcode.convertToHex2()}")
 		}
 
 		else if (maskOpcode(LD_MASK_4X, opcode.convertToBin()) ||
@@ -288,7 +267,7 @@ object CPU {
 			return
 		}
 
-//		TODO("0x${opcode.convertToHex2()}")
+		TODO("0x${opcode.convertToHex2()}")
 	}
 
 	private fun runPrefixedInstruction(opcode: UByte) {
@@ -325,6 +304,14 @@ object CPU {
 		}
 
 		return isMatch
+	}
+
+	private fun clearMemory() {
+		bus.forEach { it.value = 0x0u }
+		reg.forEach { it.value = 0x0u }
+		sp.value = STACK_POINTER_STARTING_ADDRESS
+//		pc.value = BYPASS_BOOTSTRAP_ADDRESS
+		pc.value = 0x0u
 	}
 
 	// endregion
@@ -394,14 +381,6 @@ object CPU {
 		bytes.forEachIndexed { index, byte ->
 			bus[index + offset] = RefUByte(byte.toUByte())
 		}
-	}
-
-	private fun clearMemory() {
-		bus.forEach { it.value = 0x0u }
-		reg.forEach { it.value = 0x0u }
-		sp.value = STACK_POINTER_STARTING_ADDRESS
-//		pc.value = BYPASS_BOOTSTRAP_ADDRESS
-		pc.value = 0x0u
 	}
 
 	// endregion
@@ -525,6 +504,8 @@ object CPU {
 		write(bytes.toUByte(), sp.value.toInt() + 1)
 	}
 
+	// endregion
+
 	// region Misc
 
 	/**
@@ -535,8 +516,8 @@ object CPU {
 
 		dump.printWriter().use { printer ->
 			bus.forEachIndexed { index, refUByte ->
-				var buffer = refUByte.value.convertToHex4()
-				buffer += if ((index + 1) % 20 == 0) "\n" else " "
+				var buffer = refUByte.value.convertToHex2()
+				buffer += if ((index + 1) % 16 == 0) "\n" else " "
 				printer.print(buffer)
 			}
 		}
