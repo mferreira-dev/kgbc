@@ -14,5 +14,7 @@ object Constants {
 	const val NATIVE_COLOR_3 = "614F4F"
 	const val NATIVE_COLOR_4 = "000000"
 
+	const val DISPLAY_SCALE = 2
+
 	const val DEBUG_PPU = "DEBUG_PPU"
 }
