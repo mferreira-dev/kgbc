@@ -3,6 +3,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
@@ -16,15 +17,17 @@
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toTopOf="parent">
 
-		<View
+		<pt.mferreira.kgbc.domain.emu.ppu.PPU
 			android:id="@+id/gameboy_display"
-			android:layout_width="320dp"
-			android:layout_height="288dp"
-			android:background="@color/black"
+			android:layout_width="160dp"
+			android:layout_height="144dp"
+			android:background="@color/gameboy_purple"
 			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintEnd_toEndOf="parent"
 			app:layout_constraintStart_toStartOf="parent"
-			app:layout_constraintTop_toTopOf="parent" />
+			app:layout_constraintTop_toTopOf="parent"
+			tools:layout_height="288dp"
+			tools:layout_width="320dp" />
 
 	</androidx.constraintlayout.widget.ConstraintLayout>
 

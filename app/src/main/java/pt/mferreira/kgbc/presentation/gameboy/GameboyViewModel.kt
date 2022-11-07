@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.Emulator
+import pt.mferreira.kgbc.domain.emu.ppu.PPU
 import pt.mferreira.kgbc.utils.displayToast
 
 class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -66,6 +67,10 @@ class GameboyViewModel(private val app: Application) : AndroidViewModel(app) {
 
 	fun dumpMemory() {
 		emulator.dumpMemory(app.applicationContext)
+	}
+
+	fun bindDisplayToCpu(display: PPU) {
+		emulator.bindDisplay(display)
 	}
 
 }

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.databinding.FragmentGameboyBinding
+import pt.mferreira.kgbc.domain.emu.ppu.Constants.DISPLAY_SCALE
 import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
@@ -58,6 +59,14 @@ class GameboyFragment : BaseFragment() {
 	}
 
 	override fun setupUI() {
+		binding.gameboyDisplay.layoutParams.width =
+			binding.gameboyDisplay.layoutParams.width * DISPLAY_SCALE
+
+		binding.gameboyDisplay.layoutParams.height =
+			binding.gameboyDisplay.layoutParams.height * DISPLAY_SCALE
+
+		fragmentViewModel.bindDisplayToCpu(binding.gameboyDisplay)
+
 		menuHost.addMenuProvider(object : MenuProvider {
 			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
 				if (BuildConfig.FLAVOR == DEV_FLAVOR)

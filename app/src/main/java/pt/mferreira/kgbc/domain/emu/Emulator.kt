@@ -5,17 +5,10 @@ import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.cpu.CPU
 import pt.mferreira.kgbc.domain.emu.ppu.PPU
 
-class Emulator {
+class Emulator() {
 
-	private val cpu: CPU
-	private val ppu: PPU
-	private val romManager: RomManager
-
-	init {
-		cpu = CPU()
-		ppu = PPU(cpu)
-		romManager = RomManager()
-	}
+	private val cpu = CPU()
+	private val romManager = RomManager()
 
 	fun powerOn(context: Context) {
 		val rom = context.resources.openRawResource(R.raw.dmg_boot)
@@ -35,6 +28,10 @@ class Emulator {
 
 	fun dumpMemory(context: Context) {
 		cpu.dump(context)
+	}
+
+	fun bindDisplay(display: PPU) {
+		display.setCpu(cpu)
 	}
 
 }

@@ -27,7 +27,6 @@ import pt.mferreira.kgbc.domain.emu.cpu.Constants.NUMBER_OF_8_BIT_REGISTERS
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.PREFIXED_INSTRUCTION
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.STACK_POINTER_STARTING_ADDRESS
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.SUB_MASK
-import pt.mferreira.kgbc.domain.emu.ppu.Constants.PPU_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.entities.RefUByte
 import pt.mferreira.kgbc.domain.entities.RefUShort
 import pt.mferreira.kgbc.utils.*
@@ -96,7 +95,6 @@ class CPU {
 	// region Run
 
 	private var cpuCycles: Int = 0
-	private var ppuCycles: Int = 0
 
 	private var endTimestamp: Long = 0
 	private var isCpuRunning: Boolean = false
@@ -161,10 +159,6 @@ class CPU {
 				else
 					runUnprefixedInstruction(opcode)
 			}
-
-			if (ppuCycles < PPU_CYCLES_PER_SECOND) {
-				ppuCycles++
-			}
 		}
 	}
 
@@ -172,7 +166,6 @@ class CPU {
 		val now = now()
 		endTimestamp = now + 1000L
 		cpuCycles = 0
-		ppuCycles = 0
 
 		if (BuildConfig.FLAVOR != DEV_FLAVOR)
 			return
@@ -188,7 +181,6 @@ class CPU {
 		Log.d(DEBUG_CPU, "Now: ${now()}")
 		Log.d(DEBUG_CPU, "End: $endTimestamp")
 		Log.d(DEBUG_CPU, "CPU CC: $cpuCycles")
-		Log.d(DEBUG_CPU, "PPU CC: $ppuCycles")
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
@@ -281,7 +273,7 @@ class CPU {
 	}
 
 	private fun runPrefixedInstruction(opcode: UByte) {
-		TODO("Not yet implemented: ${opcode.convertToHex4()}")
+//		TODO("Not yet implemented: ${opcode.convertToHex4()}")
 	}
 
 	/**
