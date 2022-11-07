@@ -104,7 +104,7 @@ class CPU {
 		scope.launch {
 			powerOff()
 			write(bytes, 0)
-//			startCoreLoop()
+			startCoreLoop()
 		}
 	}
 
