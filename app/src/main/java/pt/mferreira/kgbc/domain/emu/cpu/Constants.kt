@@ -12,7 +12,7 @@ object Constants {
 	 * However, an operation takes at the very least 4 cycles to complete which means that
 	 * effectively the CPU runs at 4.19 / 4 = 1.05 MHz (M-Cycles).
 	 */
-	const val MAX_CYCLES_PER_SECOND = 1048576
+	const val CPU_CYCLES_PER_SECOND = 1048576
 
 	/**
 	 * The GameBoy has a bootstrap process that involves reading from a boot ROM.
