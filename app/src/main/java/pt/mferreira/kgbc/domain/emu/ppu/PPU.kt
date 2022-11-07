@@ -70,29 +70,29 @@ class PPU(context: Context, attrs: AttributeSet) : View(context, attrs) {
 	override fun onDraw(canvas: Canvas?) {
 		super.onDraw(canvas)
 
-		if (canvas == null)
-			return
-
-		for (h in 0 until DEFAULT_HEIGHT) {
-			for (w in 0 until DEFAULT_WIDTH) {
-				val rect = if (h == 0 || h % 2 > 0)
-					rects.first()
-				else
-					rects.last()
-
-				val paint = if (h == 0 || h % 2 > 0)
-					colors.first()
-				else
-					colors.last()
-
-				rect.left = (w * DISPLAY_SCALE).convertPxToDp(density)
-				rect.top = (h * DISPLAY_SCALE).convertPxToDp(density)
-				rect.right = ((w * DISPLAY_SCALE) + DISPLAY_SCALE).convertPxToDp(density)
-				rect.bottom = ((h * DISPLAY_SCALE) + DISPLAY_SCALE).convertPxToDp(density)
-
-				canvas.drawRect(rect, paint)
-			}
-		}
+//		if (canvas == null)
+//			return
+//
+//		for (h in 0 until DEFAULT_HEIGHT) {
+//			for (w in 0 until DEFAULT_WIDTH) {
+//				val rect = if (h == 0 || h % 2 > 0)
+//					rects.first()
+//				else
+//					rects.last()
+//
+//				val paint = if (h == 0 || h % 2 > 0)
+//					colors.first()
+//				else
+//					colors.last()
+//
+//				rect.left = (w * DISPLAY_SCALE).convertPxToDp(density)
+//				rect.top = (h * DISPLAY_SCALE).convertPxToDp(density)
+//				rect.right = ((w * DISPLAY_SCALE) + DISPLAY_SCALE).convertPxToDp(density)
+//				rect.bottom = ((h * DISPLAY_SCALE) + DISPLAY_SCALE).convertPxToDp(density)
+//
+//				canvas.drawRect(rect, paint)
+//			}
+//		}
 	}
 
 }
