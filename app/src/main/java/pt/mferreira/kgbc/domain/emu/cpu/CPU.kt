@@ -10,6 +10,7 @@ import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.A_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.BYPASS_BOOTSTRAP_ADDRESS
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.B_IDX
+import pt.mferreira.kgbc.domain.emu.cpu.Constants.CPU_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.C_IDX
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.DEBUG_CPU
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.D_IDX
@@ -22,11 +23,11 @@ import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_5X
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_6X
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.LD_MASK_7X
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.L_IDX
-import pt.mferreira.kgbc.domain.emu.cpu.Constants.MAX_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.NUMBER_OF_8_BIT_REGISTERS
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.PREFIXED_INSTRUCTION
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.STACK_POINTER_STARTING_ADDRESS
 import pt.mferreira.kgbc.domain.emu.cpu.Constants.SUB_MASK
+import pt.mferreira.kgbc.domain.emu.ppu.Constants.PPU_CYCLES_PER_SECOND
 import pt.mferreira.kgbc.domain.entities.RefUByte
 import pt.mferreira.kgbc.domain.entities.RefUShort
 import pt.mferreira.kgbc.utils.*
@@ -94,9 +95,11 @@ class CPU {
 
 	// region Run
 
-	private var machineCycles: Int = 0
+	private var cpuCycles: Int = 0
+	private var ppuCycles: Int = 0
+
 	private var endTimestamp: Long = 0
-	private var isCpuRunning = false
+	private var isCpuRunning: Boolean = false
 
 	private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -124,17 +127,17 @@ class CPU {
 	/**
 	 * Run the fetch -> decode -> execute loop indefinitely.
 	 *
-	 * The CPU will continously run at [Constants.MAX_CYCLES_PER_SECOND].
+	 * The CPU will continously run at [Constants.CPU_CYCLES_PER_SECOND].
 	 * This is achieved in the following way:
 	 *
 	 * 1. The system starts a new cycle batch every second, which means the CPU
-	 * will loop exactly [Constants.MAX_CYCLES_PER_SECOND] times.
+	 * will loop exactly [Constants.CPU_CYCLES_PER_SECOND] times.
 	 * A now() call provides the batch's beginning point while simply adding 1000
 	 * to that same tell us when it should end.
 	 *
 	 * 2. At the beginning of each while loop cycle the system checks if it's time to start yet another batch.
 	 * If the time elapsed is under a second the program flow will continue as normal as long as
-	 * the [Constants.MAX_CYCLES_PER_SECOND] threshold hasn't been hit.
+	 * the [Constants.CPU_CYCLES_PER_SECOND] threshold hasn't been hit.
 	 */
 	private fun startCoreLoop() {
 		isCpuRunning = true
@@ -151,21 +154,25 @@ class CPU {
 				startNewCycleBatch()
 			}
 
-			if (machineCycles == MAX_CYCLES_PER_SECOND)
-				continue
+			if (cpuCycles < CPU_CYCLES_PER_SECOND) {
+				val opcode = fetchOpcode()
+				if (opcode.convertToBin() == PREFIXED_INSTRUCTION)
+					runPrefixedInstruction(opcode)
+				else
+					runUnprefixedInstruction(opcode)
+			}
 
-			val opcode = fetchOpcode()
-			if (opcode.convertToBin() == PREFIXED_INSTRUCTION)
-				runPrefixedInstruction(opcode)
-			else
-				runUnprefixedInstruction(opcode)
+			if (ppuCycles < PPU_CYCLES_PER_SECOND) {
+				ppuCycles++
+			}
 		}
 	}
 
 	private fun startNewCycleBatch() {
 		val now = now()
 		endTimestamp = now + 1000L
-		machineCycles = 0
+		cpuCycles = 0
+		ppuCycles = 0
 
 		if (BuildConfig.FLAVOR != DEV_FLAVOR)
 			return
@@ -180,13 +187,15 @@ class CPU {
 		Log.d(DEBUG_CPU, "Batch complete.")
 		Log.d(DEBUG_CPU, "Now: ${now()}")
 		Log.d(DEBUG_CPU, "End: $endTimestamp")
+		Log.d(DEBUG_CPU, "CPU CC: $cpuCycles")
+		Log.d(DEBUG_CPU, "PPU CC: $ppuCycles")
 		Log.d(DEBUG_CPU, "------------------------------")
 	}
 
 	private fun runUnprefixedInstruction(opcode: UByte) {
 		// NOP.
 		if (opcode.toInt() == 0x0) {
-			machineCycles++
+			cpuCycles++
 			return
 		}
 
@@ -196,30 +205,31 @@ class CPU {
 			if (ls3b.toInt() == 0x6) {
 				val address = conjoin(reg[H_IDX], reg[L_IDX]).value
 				subtract(bus[address.toInt()].value)
-				machineCycles += 2
+				cpuCycles += 2
 				return
 			}
 
 			if (ls3b.toInt() == 0x7) {
 				subtract(reg[A_IDX].value)
-				machineCycles++
+				cpuCycles++
 				return
 			}
 
 			subtract(reg[ls3b.toInt()].value)
-			machineCycles++
+			cpuCycles++
 			return
 		}
 
 		else if (opcode.toInt() == 0xD6) {
 			subtract(fetchOpcode())
-			machineCycles += 2
+			cpuCycles += 2
 			return
 		}
 
 		else if (opcode.toInt() == 0x76) {
 			// TOOD: Implement HALT instruction.
-			TODO("0x${opcode.convertToHex2()}")
+//			TODO("0x${opcode.convertToHex2()}")
+			return
 		}
 
 		else if (maskOpcode(LD_MASK_4X, opcode.convertToBin()) ||
@@ -263,11 +273,11 @@ class CPU {
 			}
 
 			load(dest, source)
-			machineCycles = machineCycles + incrementCyclesBy
+			cpuCycles = cpuCycles + incrementCyclesBy
 			return
 		}
 
-		TODO("0x${opcode.convertToHex2()}")
+//		TODO("0x${opcode.convertToHex2()}")
 	}
 
 	private fun runPrefixedInstruction(opcode: UByte) {
