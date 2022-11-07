@@ -5,6 +5,11 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.ceil
+
+fun Int.convertPxToDp(density: Float): Int {
+	return ceil(this * density.toDouble()).toInt()
+}
 
 infix fun UByte.shl(shift: Int): UByte {
 	return (this.toInt() shl shift).toUByte()

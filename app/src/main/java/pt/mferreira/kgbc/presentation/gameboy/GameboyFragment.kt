@@ -3,7 +3,6 @@ package pt.mferreira.kgbc.presentation.gameboy
 import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -12,11 +11,10 @@ import androidx.lifecycle.ViewModelProvider
 import pt.mferreira.kgbc.BuildConfig
 import pt.mferreira.kgbc.R
 import pt.mferreira.kgbc.databinding.FragmentGameboyBinding
-import pt.mferreira.kgbc.domain.emu.cpu.CPU
+import pt.mferreira.kgbc.domain.emu.ppu.Constants.DISPLAY_SCALE
 import pt.mferreira.kgbc.presentation.base.BaseFragment
 import pt.mferreira.kgbc.presentation.container.ContainerViewModel
 import pt.mferreira.kgbc.utils.Globals.DEV_FLAVOR
-import pt.mferreira.kgbc.utils.convertToHex4
 
 class GameboyFragment : BaseFragment() {
 
@@ -27,8 +25,6 @@ class GameboyFragment : BaseFragment() {
 	private lateinit var activityViewModel: ContainerViewModel
 
 	private lateinit var menuHost: MenuHost
-
-	private lateinit var registers: List<TextView>
 
 	override fun onCreateView(
 		inflater: LayoutInflater,
@@ -47,9 +43,6 @@ class GameboyFragment : BaseFragment() {
 
 		setupUI()
 		setupButtons()
-
-		if (BuildConfig.FLAVOR == DEV_FLAVOR)
-			setupObservers()
 	}
 
 	override fun setupButtons() {
@@ -66,25 +59,13 @@ class GameboyFragment : BaseFragment() {
 	}
 
 	override fun setupUI() {
-		registers = listOf(
-			binding.gameboyDebugValueA,
-			binding.gameboyDebugValueF,
-			binding.gameboyDebugValueB,
-			binding.gameboyDebugValueC,
-			binding.gameboyDebugValueD,
-			binding.gameboyDebugValueE,
-			binding.gameboyDebugValueH,
-			binding.gameboyDebugValueL,
-			binding.gameboyDebugValueAf,
-			binding.gameboyDebugValueBc,
-			binding.gameboyDebugValueDe,
-			binding.gameboyDebugValueHl,
-			binding.gameboyDebugValueSp,
-			binding.gameboyDebugValuePc
-		)
+		binding.gameboyDisplay.layoutParams.width =
+			binding.gameboyDisplay.layoutParams.width * DISPLAY_SCALE
 
-		if (BuildConfig.FLAVOR == DEV_FLAVOR)
-			binding.gameboyDebug.visibility = View.VISIBLE
+		binding.gameboyDisplay.layoutParams.height =
+			binding.gameboyDisplay.layoutParams.height * DISPLAY_SCALE
+
+		fragmentViewModel.bindDisplayToCpu(binding.gameboyDisplay)
 
 		menuHost.addMenuProvider(object : MenuProvider {
 			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -101,29 +82,21 @@ class GameboyFragment : BaseFragment() {
 						true
 					}
 					R.id.menu_power_on -> {
-						CPU.bootFromBootRom(requireContext())
+						fragmentViewModel.powerOn()
 						true
 					}
 					R.id.menu_power_off -> {
-						CPU.powerOff()
+						fragmentViewModel.powerOff()
 						true
 					}
 					R.id.menu_dump_memory -> {
-						CPU.dump(requireContext())
+						fragmentViewModel.dumpMemory()
 						true
 					}
 					else -> false
 				}
 			}
 		}, viewLifecycleOwner, Lifecycle.State.RESUMED)
-	}
-
-	override fun setupObservers() {
-		CPU.registerValues.observe(viewLifecycleOwner) {
-			it.forEachIndexed { index, int ->
-				registers[index].text = int.toUShort().convertToHex4()
-			}
-		}
 	}
 
 	private val filePicker = registerForActivityResult(StartActivityForResult()) { result ->
